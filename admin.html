@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; base-uri 'self'; form-action 'self'">
+<meta name="robots" content="noindex">
+<title>담당자 관리</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<style>
+:root{--bg:#F3F6F7;--panel:#fff;--ink:#18252B;--muted:#5B6B73;--line:#DCE4E7;--accent:#0F6E8C;--accent-ink:#fff;--accent-soft:#E2F0F5;--bad:#C8352B;--ok:#1E8A4C;
+  --f:'IBM Plex Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0F171B;--panel:#162228;--ink:#E7EEF1;--muted:#97A8B0;--line:#2A3A42;--accent:#5CB8D6;--accent-ink:#0B1A20;--accent-soft:#183540;--bad:#F27A70;--ok:#5BCB8A;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0F171B;--panel:#162228;--ink:#E7EEF1;--muted:#97A8B0;--line:#2A3A42;--accent:#5CB8D6;--accent-ink:#0B1A20;--accent-soft:#183540;--bad:#F27A70;--ok:#5BCB8A;color-scheme:dark}
+*{box-sizing:border-box}[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 var(--f)}
+header{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel)}
+header h1{font-size:18px;margin:0;flex:1}
+header a{color:var(--accent)}
+main{max-width:980px;margin:0 auto;padding:16px;display:grid;gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
+.card h2{font-size:16px;margin:0 0 10px}
+.muted{color:var(--muted);font-size:13px}
+label{display:block;font-size:13px;color:var(--muted);margin:8px 0 4px}
+input,select,textarea{width:100%;font:inherit;color:inherit;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 10px}
+textarea{min-height:110px;resize:vertical}
+.row{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end}
+@media (max-width:640px){.row{grid-template-columns:1fr}}
+button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:9px 14px}
+button.pri{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+button:disabled{opacity:.55;cursor:default}
+button.del{color:var(--bad);padding:4px 10px;font-size:13px}
+.msg{margin-top:8px;font-size:14px}.msg.bad{color:var(--bad)}.msg.ok{color:var(--ok)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:7px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;color:var(--muted);font-size:13px}
+.tw{overflow-x:auto}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px}.bar input{flex:1;min-width:180px}
+#login{max-width:420px;margin:40px auto}
+</style>
+</head>
+<body>
+<header><h1>학교 주변 도움 기관 찾기 · 담당자 관리</h1><span id="who" class="muted"></span><button id="logout" type="button" hidden>로그아웃</button><a href="./">← 지도로</a></header>
+
+<section class="card" id="login">
+  <h2>관리자 로그인</h2>
+  <p class="muted">관리자로 등록된 이메일로 인증번호를 받아 로그인해요.</p>
+  <form id="f1"><label for="em">이메일</label><input id="em" type="email" autocomplete="email" required><p><button class="pri" id="b1" type="submit">인증번호 받기</button></p></form>
+  <form id="f2" hidden><label for="code">인증번호</label><input id="code" inputmode="numeric" autocomplete="one-time-code" required><p><button class="pri" id="b2" type="submit">확인</button> <button type="button" id="back">이메일 다시 입력</button></p></form>
+  <div class="msg" id="lmsg"></div>
+</section>
+
+<main id="app" hidden>
+  <section class="card">
+    <h2>담당자 등록</h2>
+    <div class="row">
+      <div><label for="inst">기관</label><select id="inst"></select></div>
+      <div><label for="sem">담당자 이메일</label><input id="sem" type="email" placeholder="name@example.com"></div>
+      <div><button class="pri" id="add" type="button">등록</button></div>
+    </div>
+    <div class="msg" id="amsg"></div>
+    <details style="margin-top:12px"><summary>여러 명 한꺼번에 등록</summary>
+      <p class="muted">한 줄에 한 명씩 <b>기관 이름(또는 기관 코드), 이메일</b> 순서로 붙여 넣으세요. 예) <code>서구 희망복지지원단, kim@example.com</code></p>
+      <textarea id="bulk"></textarea><p><button class="pri" id="bulkBtn" type="button">한꺼번에 등록</button></p>
+      <div class="msg" id="bmsg"></div>
+    </details>
+  </section>
+
+  <section class="card">
+    <h2>등록된 담당자 <span class="muted" id="cnt"></span></h2>
+    <div class="bar"><input id="flt" type="search" placeholder="기관 이름이나 이메일로 찾기"></div>
+    <div class="tw"><table><thead><tr><th>기관</th><th>이메일</th><th>등록일</th><th></th></tr></thead><tbody id="staff"></tbody></table></div>
+  </section>
+
+  <section class="card">
+    <h2>정원·참여 현황</h2>
+    <div class="bar"><span class="muted" id="seatInfo"></span><button id="csv" type="button">CSV로 내려받기</button></div>
+    <h2 style="margin-top:14px">최근 변경 기록 (최근 50건)</h2>
+    <div class="tw"><table><thead><tr><th>시각</th><th>기관</th><th>입력한 사람</th><th>내용</th></tr></thead><tbody id="log"></tbody></table></div>
+  </section>
+  <p class="muted">관리자를 추가·삭제하려면 Supabase SQL Editor에서 <code>admins</code> 표를 고치세요(설치 안내서 참고).</p>
+</main>
+
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js" crossorigin="anonymous"></script>
+<script src="data/app-data.js"></script>
+<script src="admin.js"></script>
+</body>
+</html>
