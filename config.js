@@ -9,6 +9,6 @@
  * 값을 바꾸지 않으면 앱은 "보기 전용"으로 동작해요(지도·기관 정보는 보이고, 정원 입력과 로그인은 숨겨져요).
  */
 window.APP_CONFIG = {
-  supabaseUrl: 'https://YOUR_PROJECT_ID.supabase.co',
-  supabaseAnonKey: 'YOUR_ANON_PUBLIC_KEY'
+  supabaseUrl: 'https://tlebpfehbhhsbryclthp.supabase.co',
+  supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRsZWJwZmVoYmhoc2JyeWNsdGhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQyOTM2MDYsImV4cCI6MjEwOTg2OTYwNn0._D9isfeGztw-Ac0NzNUHrLrPiRFK5gxk_pLqptvN5i8'
 };

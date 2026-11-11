@@ -70,6 +70,9 @@ revoke all on function public.is_registered(text) from public;
 grant execute on function public.is_admin() to authenticated;
 grant execute on function public.can_edit(text) to authenticated;
 grant execute on function public.is_registered(text) to anon, authenticated;
+-- Supabase는 새 함수에 anon 실행 권한을 기본으로 주므로, 로그인한 사람만 쓰는 함수는 anon에서 다시 막아요.
+revoke execute on function public.is_admin() from anon;
+revoke execute on function public.can_edit(text) from anon;
 
 -- 3) 입력값 검사 + 누가/언제 고쳤는지 서버에서 기록 ---------------------
 --    (화면에서 보낸 값은 믿지 않고, 저장 시각과 이메일은 서버가 채워요)
@@ -101,6 +104,8 @@ begin
   values (new.inst_key, new.inst_name, new.items, new.updated_by);
   return new;
 end $$;
+
+revoke execute on function public.seats_stamp() from public, anon, authenticated;
 
 drop trigger if exists seats_stamp on public.seats;
 create trigger seats_stamp before insert or update on public.seats
