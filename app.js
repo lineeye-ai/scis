@@ -207,8 +207,7 @@ function render(){
   catHost.querySelectorAll('.cat').forEach(b => { const c = b.dataset.c; b.setAttribute('aria-pressed', S.cats.has(c));
     b.querySelector('.n').textContent = inR.filter(r => r.cat === c).length; });
   current = inR.filter(r => S.cats.has(r.cat));
-  const offCats = CATS.length - S.cats.size;
-  $('#sumText').innerHTML = `<em>${sc.name}</em> 반경 ${fmtD(S.r)} 안에 기관 <em>${current.length}곳</em>` + (S.cats.size === 1 ? ` <span style="font-weight:500;color:var(--muted);font-size:14px">(${CATL[[...S.cats][0]]}만 보기)</span>` : offCats ? ` <span style="font-weight:500;color:var(--muted);font-size:14px">(분류 ${offCats}개 숨김)</span>` : '');
+  $('#sumText').innerHTML = `<em class="snm">${sc.name}</em> <span class="srest">반경 ${fmtD(S.r)} 안에 기관 <em>${current.length}곳</em></span>`;
 
   const list = $('#list'); list.innerHTML = '';
   if(!current.length){

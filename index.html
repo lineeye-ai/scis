@@ -259,9 +259,23 @@ footer{display:flex;flex-direction:column;gap:8px;font-size:12.5px;color:var(--m
 @media (min-width:901px){
   html,body{height:100%;overflow:hidden}
   body{margin:0}
-  .wrap{height:100vh;height:100dvh;max-width:1720px;padding-block:12px;gap:10px}
+  .wrap{height:100vh;height:100dvh;max-width:1720px;padding-block:10px 12px;gap:10px}
   header{flex:none;align-items:center}
-  h1{font-size:clamp(24px,2.4vw,32px)}
+  /* one slim title bar: title · office name … numbers */
+  header{flex-wrap:nowrap;gap:8px 20px}
+  header > div:first-child{display:flex;align-items:baseline;flex-wrap:wrap;gap:2px 14px;min-width:0}
+  header .kick{order:2;font-size:12.5px;letter-spacing:.02em;color:var(--muted);font-weight:600}
+  h1{order:1;font-size:clamp(22px,2vw,28px);margin:0;white-space:nowrap}
+  .stats{gap:16px;align-items:baseline;flex:none}
+  .stats > div{display:flex;align-items:baseline;gap:4px;white-space:nowrap}
+  .stats b{display:inline;font-size:19px}
+  /* summary bar stays on one line */
+  .sumcard .sum{flex-wrap:nowrap;align-items:center}
+  .sumcard .sum h2{flex:1;min-width:0;font-size:14.5px;display:flex;white-space:nowrap}
+  .sumcard .snm{min-width:0;overflow:hidden;text-overflow:ellipsis;margin-right:.3em}
+  .sumcard .srest{flex:none}
+  .sumcard .mbtn{flex:none;display:inline-flex;align-items:center;padding:6px 8px}
+  .sumcard .cptx{display:none}
   header p{display:none}
   .stats b{font-size:22px}
   .grid{flex:1;min-height:0;align-items:stretch;grid-template-columns:minmax(340px,420px) minmax(0,1fr)}
@@ -289,14 +303,13 @@ footer{display:flex;flex-direction:column;gap:8px;font-size:12.5px;color:var(--m
   /* only the institution list scrolls; the search and range panels above stay put */
   .listpane{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:8px;padding:0 6px 4px 0;scrollbar-gutter:stable}
   .sumcard{position:sticky;top:0;z-index:2;flex:none;padding:10px 14px}
-  .sumcard .sum h2{font-size:15.5px}
   .list{max-height:none;overflow:visible}
   .mapcard{position:relative;top:0;display:flex;flex-direction:column;min-height:0}
   .mapwrap{flex:1;min-height:0}
   #map{position:absolute;inset:0;width:100%;height:100%;aspect-ratio:auto}
   .listpane > footer{padding:6px 2px 8px}
 }
-@media (min-width:901px) and (min-height:900px){ header p{display:block} }
+#copyAll{display:inline-flex;align-items:center;gap:5px}
 </style>
 </head>
 <body>
@@ -381,7 +394,7 @@ footer{display:flex;flex-direction:column;gap:8px;font-size:12.5px;color:var(--m
       <section class="card sumcard" aria-live="polite">
         <div class="sum">
           <h2 id="sumText">-</h2>
-          <button class="mbtn" id="copyAll" type="button">목록 복사</button>
+          <button class="mbtn" id="copyAll" type="button" title="목록 복사" aria-label="목록 복사"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 8V5a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h2" fill="none" stroke="currentColor" stroke-width="2"/></svg><span class="cptx">목록 복사</span></button>
         </div>
       </section>
       <div class="list" id="list"></div>
@@ -431,8 +444,8 @@ footer{display:flex;flex-direction:column;gap:8px;font-size:12.5px;color:var(--m
     <p class="lgnote">담당자 확인을 위해 이메일 주소만 사용하고, 담당 기간 동안 보관해요. 정원·참여 수 말고 학생 개인정보는 입력하지 마세요.</p>
   </section>
 </div>
-<script src="config.js?v=10a447e2"></script>
-<script src="data/app-data.js?v=10a447e2"></script>
-<script src="app.js?v=10a447e2"></script>
+<script src="config.js?v=c443f33c"></script>
+<script src="data/app-data.js?v=c443f33c"></script>
+<script src="app.js?v=c443f33c"></script>
 </body>
 </html>
