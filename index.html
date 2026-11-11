@@ -310,6 +310,28 @@ footer{display:flex;flex-direction:column;gap:8px;font-size:12.5px;color:var(--m
   .listpane > footer{padding:6px 2px 8px}
 }
 #copyAll{display:inline-flex;align-items:center;gap:5px}
+
+/* phones: slim title bar and one-line summary (same idea as the computer layout) */
+@media (max-width:900px){
+  .wrap{padding-block:10px 24px;gap:12px}
+  header{flex-wrap:wrap;align-items:center;gap:6px 12px}
+  header > div:first-child{display:flex;flex-direction:column;min-width:0;flex:1 1 0}
+  .whobox{flex:0 0 100%;flex-direction:row;justify-content:flex-end;align-items:center}
+  header .kick{order:2;font-size:11.5px;letter-spacing:0;color:var(--muted);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  h1{order:1;font-size:clamp(17px,5.4vw,24px);margin:0;white-space:nowrap}
+  header p{display:none}
+  .stats{gap:10px;align-items:baseline;flex:none;font-size:11px}
+  .stats > div{display:flex;flex-direction:column;align-items:center;line-height:1.1}
+  .stats b{font-size:16px}
+  .sumcard{padding:10px 14px}
+  .sumcard .sum{flex-wrap:nowrap;align-items:center}
+  .sumcard .sum h2{flex:1;min-width:0;font-size:14.5px;display:flex;white-space:nowrap}
+  .sumcard .snm{min-width:0;overflow:hidden;text-overflow:ellipsis;margin-right:.3em}
+  .sumcard .srest{flex:none}
+  .sumcard .mbtn{flex:none;display:inline-flex;align-items:center;padding:6px 8px}
+  .sumcard .cptx{display:none}
+}
+@media (max-width:370px){ .stats > div:nth-child(3){display:none} }
 </style>
 </head>
 <body>
@@ -444,8 +466,8 @@ footer{display:flex;flex-direction:column;gap:8px;font-size:12.5px;color:var(--m
     <p class="lgnote">담당자 확인을 위해 이메일 주소만 사용하고, 담당 기간 동안 보관해요. 정원·참여 수 말고 학생 개인정보는 입력하지 마세요.</p>
   </section>
 </div>
-<script src="config.js?v=f5a6c0ac"></script>
-<script src="data/app-data.js?v=f5a6c0ac"></script>
-<script src="app.js?v=f5a6c0ac"></script>
+<script src="config.js?v=9ca685b1"></script>
+<script src="data/app-data.js?v=9ca685b1"></script>
+<script src="app.js?v=9ca685b1"></script>
 </body>
 </html>
