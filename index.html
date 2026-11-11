@@ -56,6 +56,7 @@ header p{margin:6px 0 0;color:var(--muted);font-size:14px;max-width:62ch}
 
 /* school picker */
 .combo{position:relative}
+.qbox{position:relative}
 .combo input{width:100%;font:inherit;font-size:16px;padding:11px 14px 11px 40px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
 .combo input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
 .combo svg.s{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--muted)}
@@ -229,7 +230,10 @@ footer{display:flex;flex-direction:column;gap:8px;font-size:12.5px;color:var(--m
   .side > :nth-child(2){order:3}
   .side > :nth-child(3){order:4}
   .side > :nth-child(4){order:5}
-  .side > footer{order:6}
+  .listpane{display:contents}
+  .listpane > .sumcard{order:4}
+  .listpane > .list{order:5}
+  .listpane > footer{order:6}
   #map{height:56vh;min-height:300px}
   .list{max-height:none;overflow:visible}
 }
@@ -261,12 +265,36 @@ footer{display:flex;flex-direction:column;gap:8px;font-size:12.5px;color:var(--m
   header p{display:none}
   .stats b{font-size:22px}
   .grid{flex:1;min-height:0;align-items:stretch;grid-template-columns:minmax(340px,420px) minmax(0,1fr)}
-  .side{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:0 6px 4px 0;scrollbar-gutter:stable}
+  .side{min-height:0;overflow:hidden;gap:10px}
+  .side > .card{flex:none;padding:12px 14px}
+  .side .lbl{margin-bottom:6px}
+  .side .row{margin-top:8px}
+  .side .pick{margin-top:10px;padding:8px 12px}
+  #pick + .row > span{display:none}
+  #l-school, #l-rad{display:none}
+  .side .combo input{padding:9px 12px 9px 38px;font-size:15px}
+  /* the 구·학교급 filters only matter while searching, so they open with the search box */
+  .side > .card:first-child .row[role=group]{display:none}
+  .side > .card.searching:first-child .row[role=group]{display:flex}
+  .side .pick{gap:8px}
+  .side .pick > svg{width:24px;height:24px}
+  .side .pick > div{display:flex;align-items:baseline;gap:4px 8px;flex-wrap:wrap}
+  .side .pick .nm{font-size:15px}
+  .side .lbl[style]{margin-top:10px!important}
+  .sumcard .mbtn{padding:3px 9px;font-size:12.5px}
+  #pick + .row{margin-top:0}
+  #pick + .row:has(#backBtn:not([hidden])){margin-top:8px}
+  .side .seg button{padding:6px 0}
+  .side .cat{font-size:12.5px;padding:3px 9px 3px 3px}
+  /* only the institution list scrolls; the search and range panels above stay put */
+  .listpane{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:8px;padding:0 6px 4px 0;scrollbar-gutter:stable}
+  .sumcard{position:sticky;top:0;z-index:2;flex:none;padding:10px 14px}
+  .sumcard .sum h2{font-size:15.5px}
   .list{max-height:none;overflow:visible}
   .mapcard{position:relative;top:0;display:flex;flex-direction:column;min-height:0}
   .mapwrap{flex:1;min-height:0}
   #map{position:absolute;inset:0;width:100%;height:100%;aspect-ratio:auto}
-  .side > footer{padding:6px 2px 8px}
+  .listpane > footer{padding:6px 2px 8px}
 }
 @media (min-width:901px) and (min-height:900px){ header p{display:block} }
 </style>
@@ -309,15 +337,17 @@ footer{display:flex;flex-direction:column;gap:8px;font-size:12.5px;color:var(--m
       <section class="card" aria-labelledby="l-school">
         <div class="lbl" id="l-school">기준 학교</div>
         <div class="combo">
-          <svg class="s" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16.5 16.5 L21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-          <input id="q" type="search" autocomplete="off" placeholder="학교 이름 입력 (예: 서부초)" role="combobox" aria-expanded="false" aria-controls="opts" aria-autocomplete="list">
+          <div class="qbox">
+            <svg class="s" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16.5 16.5 L21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <input id="q" type="search" autocomplete="off" placeholder="학교 이름 입력 (예: 서부초)" role="combobox" aria-expanded="false" aria-controls="opts" aria-autocomplete="list">
+          </div>
+          <div class="row" role="group" aria-label="구 선택">
+            <div class="chips" id="guChips"></div>
+          </div>
+          <div class="row" role="group" aria-label="학교급 선택">
+            <div class="chips" id="lvChips"></div>
+          </div>
           <div class="opts" id="opts" role="listbox" hidden></div>
-        </div>
-        <div class="row" role="group" aria-label="구 선택">
-          <div class="chips" id="guChips"></div>
-        </div>
-        <div class="row" role="group" aria-label="학교급 선택">
-          <div class="chips" id="lvChips"></div>
         </div>
         <div class="pick" id="pick">
           <svg width="30" height="30" aria-hidden="true"><circle cx="15" cy="15" r="14" fill="var(--accent)"/><use href="#g-school" x="1" y="1" width="28" height="28"/></svg>
@@ -347,7 +377,8 @@ footer{display:flex;flex-direction:column;gap:8px;font-size:12.5px;color:var(--m
         <div class="cats" id="cats"></div>
       </section>
 
-      <section class="card" aria-live="polite">
+      <div class="listpane">
+      <section class="card sumcard" aria-live="polite">
         <div class="sum">
           <h2 id="sumText">-</h2>
           <button class="mbtn" id="copyAll" type="button">목록 복사</button>
@@ -360,6 +391,7 @@ footer{display:flex;flex-direction:column;gap:8px;font-size:12.5px;color:var(--m
         </div>
         <div>출처: 2026 학생맞춤통합지원 복지 서비스별 자원 목록(부산서부교육지원청, 2026.10). 기관·학교 좌표는 지도 검색 기준이며, 점선 테두리 핀은 정확한 주소를 찾지 못해 대략 위치로 표시했어요. 관내 4개 구 밖(사상구·동구 등)의 기관은 들어 있지 않아요. 연계 전에 기관에 전화로 운영 여부를 확인하세요.</div>
       </footer>
+      </div>
     </div>
 
     <section class="card mapcard" aria-label="지도">
@@ -399,8 +431,8 @@ footer{display:flex;flex-direction:column;gap:8px;font-size:12.5px;color:var(--m
     <p class="lgnote">담당자 확인을 위해 이메일 주소만 사용하고, 담당 기간 동안 보관해요. 정원·참여 수 말고 학생 개인정보는 입력하지 마세요.</p>
   </section>
 </div>
-<script src="config.js?v=78f5ea09"></script>
-<script src="data/app-data.js?v=78f5ea09"></script>
-<script src="app.js?v=78f5ea09"></script>
+<script src="config.js?v=10a447e2"></script>
+<script src="data/app-data.js?v=10a447e2"></script>
+<script src="app.js?v=10a447e2"></script>
 </body>
 </html>

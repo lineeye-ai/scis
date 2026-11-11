@@ -166,7 +166,8 @@ function showOpts(force){
   optSel = -1; opts.hidden = false; q.setAttribute('aria-expanded', 'true');
 }
 q.addEventListener('input', () => showOpts(false));
-q.addEventListener('focus', () => showOpts(true));
+q.addEventListener('focus', () => { showOpts(true); q.closest('.card').classList.add('searching'); });
+document.addEventListener('pointerdown', e => { const c = q.closest('.card'); if(!c.contains(e.target)) c.classList.remove('searching'); });
 q.addEventListener('blur', () => setTimeout(() => { opts.hidden = true; q.setAttribute('aria-expanded','false'); }, 120));
 q.addEventListener('keydown', e => {
   const items = [...opts.querySelectorAll('.opt[role=option]')];
@@ -189,7 +190,7 @@ $('#legend').innerHTML = CATS.map(([c,l]) => `<span>${icon(c,16)}${l}</span>`).j
 
 function setSchool(s, keepView){
   if(!s.custom) S.back = null;
-  S.school = s; S.sel = null; hideInfo(); q.value = s.custom ? '' : s.name; opts.hidden = true; save(); render(); if(!keepView) fitRadius();
+  S.school = s; S.sel = null; hideInfo(); q.value = s.custom ? '' : s.name; opts.hidden = true; q.closest('.card').classList.remove('searching'); save(); render(); if(!keepView) fitRadius();
 }
 
 /* ---------- render ---------- */
