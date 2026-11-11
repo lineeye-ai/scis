@@ -301,9 +301,16 @@ function select(r, fromMap){
   S.sel = isSel(r) ? null : keyOf(r);
   document.querySelectorAll('.item').forEach(i => i.classList.toggle('on', i.dataset.key === S.sel));
   drawMap();
-  if(S.sel){ showInfo(r); if(innerWidth <= 900) ensureVisibleSheet(r, fromMap ? map.getBoundingClientRect().top : 0); else ensureVisible(r); } else hideInfo();
-  if(S.sel && fromMap){ const it = document.querySelector(`.item[data-key="${keyOf(r)}"]`); it?.scrollIntoView({behavior:'smooth', block:'nearest'}); }
-  if(S.sel && !fromMap && innerWidth <= 900) map.scrollIntoView({behavior:'smooth', block:'start'});
+  if(!S.sel){ hideInfo(); return; }
+  showInfo(r);
+  if(innerWidth <= 900){
+    // phones: bring the map to the top of the screen so it fills the space above the half-open sheet
+    map.scrollIntoView({behavior:'auto', block:'start'});
+    ensureVisibleSheet(r, map.getBoundingClientRect().top);
+  } else {
+    ensureVisible(r);
+    if(fromMap){ const it = document.querySelector(`.item[data-key="${keyOf(r)}"]`); it?.scrollIntoView({behavior:'smooth', block:'nearest'}); }
+  }
 }
 
 /* ---------- info popup ---------- */
