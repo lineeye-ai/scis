@@ -304,8 +304,8 @@ function select(r, fromMap){
   if(!S.sel){ hideInfo(); return; }
   showInfo(r);
   if(innerWidth <= 900){
-    // phones: bring the map to the top of the screen so it fills the space above the half-open sheet
-    map.scrollIntoView({behavior:'auto', block:'start'});
+    // phones: map mode — the map is pinned to the top of the screen, the sheet sits under it
+    mapMode(true);
     ensureVisibleSheet(r, map.getBoundingClientRect().top);
   } else {
     ensureVisible(r);
@@ -441,7 +441,7 @@ function bindProg(){
   if(ed) ed.onclick = () => {
     const rec = P2.data[ikey(r)];
     P2.draft = (rec?.items?.length ? rec.items : progBase(r, P2.items)).map(it => ({...it}));
-    P2.editing = ikey(r); P2.msg = ''; info.classList.add('full'); paintProg(); document.getElementById('et0')?.focus();
+    P2.editing = ikey(r); P2.msg = ''; info.classList.add('full'); paintProg(); syncSheet(); document.getElementById('et0')?.focus();
   };
   const add = document.getElementById('pAdd'); if(add) add.onclick = () => { readDraft(); P2.draft.push({name:'', desc:'', who:'', to:null, cur:null}); paintProg(); document.getElementById('en' + (P2.draft.length-1))?.focus(); };
   document.querySelectorAll('#prog .edel').forEach(b => b.onclick = () => { readDraft(); P2.draft.splice(+b.closest('.erow').dataset.i, 1); paintProg(); });
@@ -607,11 +607,30 @@ if(SB_ON){
 }
 
 
-function hideInfo(){ info.hidden = true; info.classList.remove('full'); P2.shown = null; P2.editing = null; }
+function hideInfo(){ info.hidden = true; info.classList.remove('full'); P2.shown = null; P2.editing = null; mapMode(false); }
+/* phones: the sheet lives on <body>; while it is open the map card is pinned above it (map mode) */
+const infoHome = info.parentNode;
+function placeInfo(){
+  const phone = innerWidth <= 900;
+  if(phone && info.parentNode !== document.body) document.body.appendChild(info);
+  else if(!phone && info.parentNode !== infoHome){ infoHome.appendChild(info); mapMode(false); }
+}
+function syncSheet(){ if(info.classList.contains('full') && document.documentElement.style.getPropertyValue('--sheet-h')) return; // the big sheet covers the map instead of squeezing it
+  document.documentElement.style.setProperty('--sheet-h', (info.hidden ? 0 : Math.round(info.getBoundingClientRect().height)) + 'px'); }
+function mapMode(on){
+  const root = document.documentElement; on = !!on && innerWidth <= 900;
+  if(root.classList.contains('mapmode') === on){ if(on) syncSheet(); return; }
+  root.classList.toggle('mapmode', on); syncSheet();
+  mapW = 0; MK = null; unitFast();
+  if(mapH > 0) setVB([vb[0], vb[1], vb[2], vb[2] * mapH / Math.max(1, mapW)]); // keep the scale, fit the new frame
+}
+function recentre(){ if(S.sel && innerWidth <= 900){ const r = current.find(isSel); if(r){ syncSheet(); mapW = 0; unitFast(); setVB([vb[0], vb[1], vb[2], vb[2] * mapH / Math.max(1, mapW)]); ensureVisibleSheet(r, map.getBoundingClientRect().top); } } }
+placeInfo(); addEventListener('resize', () => { placeInfo(); if(!info.hidden) syncSheet(); });
+if(window.ResizeObserver) new ResizeObserver(() => { if(!info.hidden && document.documentElement.classList.contains('mapmode')) syncSheet(); }).observe(info);
 /* phone sheet: tap the handle or "자세히 보기" to enlarge, scroll the details to enlarge, swipe the top down to shrink or close */
 function bindSheet(){
   const body = info.querySelector('.ibody'), head = info.querySelector('.ihead');
-  const grow = on => info.classList.toggle('full', on);
+  const grow = on => { if(info.classList.contains('full') === on) return; info.classList.toggle('full', on); if(!on) recentre(); };
   info.querySelector('.grab').onclick = () => grow(!info.classList.contains('full'));
   body.addEventListener('scroll', () => { if(body.scrollTop > 24 && innerWidth <= 900) grow(true); }, {passive: true});
   let y0 = null;

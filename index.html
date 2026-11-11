@@ -195,9 +195,18 @@ footer{display:flex;flex-direction:column;gap:8px;font-size:12.5px;color:var(--m
 .info{word-break:keep-all;overflow-wrap:anywhere}
 /* phones: bottom sheet — name, distance and call button stay on top, details scroll underneath */
 @media (max-width:900px){
-  .info{position:fixed;left:0;right:0;bottom:0;width:auto;max-height:min(52vh,52dvh);padding:0;gap:0;overflow:hidden;border-radius:18px 18px 0 0;border-left:0;border-right:0;border-bottom:0;box-shadow:0 -8px 28px rgba(10,30,40,.2);z-index:40;transition:max-height .22s ease}
-  .info.full{max-height:min(88vh,88dvh)}
-  @media (max-height:700px){.info{max-height:min(58vh,58dvh)}.info.full{max-height:min(92vh,92dvh)}}
+  .info{position:fixed;left:0;right:0;bottom:0;width:auto;max-height:52vh;max-height:min(52vh,52dvh);padding:0;gap:0;overflow:hidden;border-radius:18px 18px 0 0;border-left:0;border-right:0;border-bottom:0;box-shadow:0 -8px 28px rgba(10,30,40,.2);z-index:40;transition:max-height .22s ease}
+  .info.full{max-height:88vh;max-height:min(88vh,88dvh)}
+  @media (max-height:700px){.info{max-height:58vh;max-height:min(58vh,58dvh)}.info.full{max-height:92vh;max-height:min(92vh,92dvh)}}
+  /* map mode: while a sheet is open the map is pinned to the top of the screen, filling everything above the sheet */
+  html.mapmode, html.mapmode body{overflow:hidden}
+  html.mapmode .mapcard{position:fixed;top:0;left:0;right:0;bottom:var(--sheet-h,50%);z-index:39;margin:0;border:0;border-radius:0;box-shadow:none;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px)}
+  html.mapmode .maphead{padding:6px 10px}
+  html.mapmode .maphead .hint, html.mapmode .legend{display:none}
+  html.mapmode .mapbtns{margin-left:auto}
+  html.mapmode .mapwrap{flex:1;min-height:0}
+  html.mapmode #map{height:100%;min-height:0;touch-action:none}
+  html.mapmode .info{transition:none}
   .ihead{display:flex;flex-direction:column;gap:10px;flex:none;padding:0 max(16px,env(safe-area-inset-right,0px)) 12px max(16px,env(safe-area-inset-left,0px));border-bottom:1px solid var(--line);touch-action:none}
   .ibody{display:flex;flex-direction:column;gap:12px;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:12px max(16px,env(safe-area-inset-right,0px)) calc(18px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
   .grab{display:flex;align-items:center;justify-content:center;width:100%;height:22px;margin-bottom:-4px;border:0;background:none;padding:0;cursor:pointer}
@@ -370,8 +379,8 @@ footer{display:flex;flex-direction:column;gap:8px;font-size:12.5px;color:var(--m
     <p class="lgnote">담당자 확인을 위해 이메일 주소만 사용하고, 담당 기간 동안 보관해요. 정원·참여 수 말고 학생 개인정보는 입력하지 마세요.</p>
   </section>
 </div>
-<script src="config.js"></script>
-<script src="data/app-data.js"></script>
-<script src="app.js"></script>
+<script src="config.js?v=701a4c93"></script>
+<script src="data/app-data.js?v=701a4c93"></script>
+<script src="app.js?v=701a4c93"></script>
 </body>
 </html>
