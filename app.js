@@ -221,14 +221,13 @@ function render(){
       <div class="t">${r.name}<span class="gu" style="background:var(${GUVAR[r.gu]})">${r.gu} ${r.no}</span></div>
       <div class="dist">${fmtD(r.m)}<small>도보 약 ${walk(r.m)}분</small><span class="avail" data-k="${ikey(r)}" hidden></span></div>
       <div class="d">${CATL[r.cat]} · ${r.desc}</div>
-      <div class="meta">${r.ph && r.ph !== '-' ? `<a class="call" href="tel:${r.ph.replace(/[^0-9]/g,'')}" target="_top" aria-label="${r.name}에 전화 걸기"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z" fill="currentColor"/></svg><span class="ph">${r.ph}</span></a><button class="copy" type="button" data-ph="${r.ph}">번호 복사</button>` : '<span class="addr">전화번호 없음</span>'}
+      <div class="meta">
         <span class="addr">${r.addr}</span>${r.ap ? '<span class="tag" style="color:var(--muted)">대략 위치</span>' : ''}</div>`;
     b.onclick = e => { if(e.target.closest('.copy, .call')) return; select(r, false); };
     b.onkeydown = e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); select(r, false); } };
     list.appendChild(b);
   });
   fillSeatChips();
-  list.querySelectorAll('.copy').forEach(c => c.onclick = e => { e.stopPropagation(); copy(c.dataset.ph, `${c.dataset.ph} 복사했어요`); });
   if(S.sel && !current.some(isSel)){ S.sel = null; hideInfo(); }
   else if(S.sel && !P2.editing){ showInfo(current.find(isSel)); }
   drawMap();
