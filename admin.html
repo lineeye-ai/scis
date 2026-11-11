@@ -46,7 +46,7 @@ th{font-weight:600;color:var(--muted);font-size:13px}
   <h2>관리자 로그인</h2>
   <p class="muted">관리자로 등록된 이메일로 인증번호를 받아 로그인해요.</p>
   <form id="f1"><label for="em">이메일</label><input id="em" type="email" autocomplete="email" required><p><button class="pri" id="b1" type="submit">인증번호 받기</button></p></form>
-  <form id="f2" hidden><label for="code">인증번호</label><input id="code" inputmode="numeric" autocomplete="one-time-code" required><p><button class="pri" id="b2" type="submit">확인</button> <button type="button" id="back">이메일 다시 입력</button></p></form>
+  <form id="f2" hidden><label for="code">인증번호</label><input id="code" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="메일로 받은 숫자 8자리" required><p><button class="pri" id="b2" type="submit">확인</button> <button type="button" id="back">이메일 다시 입력</button></p></form>
   <div class="msg" id="lmsg"></div>
 </section>
 
