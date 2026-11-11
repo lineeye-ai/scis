@@ -229,6 +229,7 @@ footer{display:flex;flex-direction:column;gap:8px;font-size:12.5px;color:var(--m
   .side > :nth-child(2){order:3}
   .side > :nth-child(3){order:4}
   .side > :nth-child(4){order:5}
+  .side > footer{order:6}
   #map{height:56vh;min-height:300px}
   .list{max-height:none;overflow:visible}
 }
@@ -249,6 +250,25 @@ footer{display:flex;flex-direction:column;gap:8px;font-size:12.5px;color:var(--m
 .lgform .call{align-self:flex-start;border:0;cursor:pointer;font:inherit;font-weight:700}
 .lgnote{margin:0;font-size:12px;color:var(--muted)}
 .mine .chip{border-color:var(--accent);color:var(--accent)}
+
+/* computer screens: the whole app fits one screen — the left panel scrolls by itself, the map fills the rest */
+@media (min-width:901px){
+  html,body{height:100%;overflow:hidden}
+  body{margin:0}
+  .wrap{height:100vh;height:100dvh;max-width:1720px;padding-block:12px;gap:10px}
+  header{flex:none;align-items:center}
+  h1{font-size:clamp(24px,2.4vw,32px)}
+  header p{display:none}
+  .stats b{font-size:22px}
+  .grid{flex:1;min-height:0;align-items:stretch;grid-template-columns:minmax(340px,420px) minmax(0,1fr)}
+  .side{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:0 6px 4px 0;scrollbar-gutter:stable}
+  .list{max-height:none;overflow:visible}
+  .mapcard{position:relative;top:0;display:flex;flex-direction:column;min-height:0}
+  .mapwrap{flex:1;min-height:0}
+  #map{position:absolute;inset:0;width:100%;height:100%;aspect-ratio:auto}
+  .side > footer{padding:6px 2px 8px}
+}
+@media (min-width:901px) and (min-height:900px){ header p{display:block} }
 </style>
 </head>
 <body>
@@ -334,6 +354,12 @@ footer{display:flex;flex-direction:column;gap:8px;font-size:12.5px;color:var(--m
         </div>
       </section>
       <div class="list" id="list"></div>
+      <footer>
+        <div class="hot" aria-label="긴급 전화">
+          <span><b>112</b> 아동학대·범죄</span><span><b>117</b> 학교폭력</span><span><b>1388</b> 청소년상담</span><span><b>129</b> 긴급복지</span><span><b>1366</b> 여성긴급전화</span><span><b>1577-0199</b> 정신건강위기</span><span><b>109</b> 자살예방</span>
+        </div>
+        <div>출처: 2026 학생맞춤통합지원 복지 서비스별 자원 목록(부산서부교육지원청, 2026.10). 기관·학교 좌표는 지도 검색 기준이며, 점선 테두리 핀은 정확한 주소를 찾지 못해 대략 위치로 표시했어요. 관내 4개 구 밖(사상구·동구 등)의 기관은 들어 있지 않아요. 연계 전에 기관에 전화로 운영 여부를 확인하세요.</div>
+      </footer>
     </div>
 
     <section class="card mapcard" aria-label="지도">
@@ -352,12 +378,6 @@ footer{display:flex;flex-direction:column;gap:8px;font-size:12.5px;color:var(--m
     </section>
   </div>
 
-  <footer>
-    <div class="hot" aria-label="긴급 전화">
-      <span><b>112</b> 아동학대·범죄</span><span><b>117</b> 학교폭력</span><span><b>1388</b> 청소년상담</span><span><b>129</b> 긴급복지</span><span><b>1366</b> 여성긴급전화</span><span><b>1577-0199</b> 정신건강위기</span><span><b>109</b> 자살예방</span>
-    </div>
-    <div>출처: 2026 학생맞춤통합지원 복지 서비스별 자원 목록(부산서부교육지원청, 2026.10). 기관·학교 좌표는 지도 검색 기준이며, 점선 테두리 핀은 정확한 주소를 찾지 못해 대략 위치로 표시했어요. 관내 4개 구 밖(사상구·동구 등)의 기관은 들어 있지 않아요. 연계 전에 기관에 전화로 운영 여부를 확인하세요.</div>
-  </footer>
 </div>
 <div class="toast" id="toast" hidden></div>
 <div class="lgwrap" id="lgWrap" hidden>
@@ -379,8 +399,8 @@ footer{display:flex;flex-direction:column;gap:8px;font-size:12.5px;color:var(--m
     <p class="lgnote">담당자 확인을 위해 이메일 주소만 사용하고, 담당 기간 동안 보관해요. 정원·참여 수 말고 학생 개인정보는 입력하지 마세요.</p>
   </section>
 </div>
-<script src="config.js?v=e70fc5f1"></script>
-<script src="data/app-data.js?v=e70fc5f1"></script>
-<script src="app.js?v=e70fc5f1"></script>
+<script src="config.js?v=78f5ea09"></script>
+<script src="data/app-data.js?v=78f5ea09"></script>
+<script src="app.js?v=78f5ea09"></script>
 </body>
 </html>
