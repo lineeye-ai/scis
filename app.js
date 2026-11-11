@@ -22,43 +22,57 @@ const fmtD = m => m < 1000 ? `${Math.round(m/10)*10}m` : `${(m/1000).toFixed(1)}
 const walk = m => Math.max(1, Math.round(m*1.3/67));
 
 const S = {school:null, r:1000, cats:new Set(CATS.map(c=>c[0])), gu:'전체', lv:'전체', sel:null, picking:false};
-try{ const saved = JSON.parse(localStorage.getItem('swk-school-finder')||'null'); if(saved){ if(saved.r) S.r = saved.r; } }catch(e){}
+try{ const saved = JSON.parse(localStorage.getItem('swk-school-finder')||'null'); if(saved){ if([500, 1000, 2000].includes(saved.r)) S.r = saved.r; } }catch(e){}
 const HOME = {name:'부산서부교육지원청', gu:'서구', lv:'기', lat:35.116866, lon:129.011733, home:true, addr:'서구 꽃마을로 33'};
 S.school = HOME;
 function save(){ try{ localStorage.setItem('swk-school-finder', JSON.stringify({r:S.r, school:S.school})); }catch(e){} }
 
 $('#stRes').textContent = D.res.length;
 $('#stSch').textContent = D.schools.length;
-D.schools.unshift(HOME);
+const SCHOOLS = [HOME, ...D.schools];
 
 /* ---------- map ---------- */
 const map = $('#map');
 function el(tag, attrs, parent){ const e = document.createElementNS(NS, tag); for(const k in attrs) e.setAttribute(k, attrs[k]); if(parent) parent.appendChild(e); return e; }
-const NSS = {'vector-effect':'non-scaling-stroke'};
 const defs = el('defs', {}, map);
 defs.innerHTML = `
-  <linearGradient id="seaG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--sea)"/><stop offset="1" stop-color="var(--sea-deep)"/></linearGradient>
-  <filter id="landSh" x="-5%" y="-5%" width="110%" height="110%"><feDropShadow dx="0" dy="1.2" stdDeviation="1.6" flood-color="var(--shade)" flood-opacity=".35"/></filter>
-  <filter id="pinSh" x="-60%" y="-40%" width="220%" height="200%"><feDropShadow dx="0" dy="1.5" stdDeviation="1.4" flood-color="#000" flood-opacity=".3"/></filter>
   <radialGradient id="ringG"><stop offset=".55" stop-color="var(--accent)" stop-opacity="0"/><stop offset="1" stop-color="var(--accent)" stop-opacity=".10"/></radialGradient>`;
 const gBase = el('g', {}, map);
-el('rect', {x:-2000, y:-2000, width:5000, height:5000, fill:'url(#seaG)'}, gBase);
-el('path', {d:D.nb, fill:'var(--nb)', stroke:'var(--nb-line)', 'stroke-width':1, ...NSS}, gBase);
-el('path', {d:D.land, fill:'var(--land)', filter:'url(#landSh)'}, gBase);
-D.dongs.forEach(d => { d.el = el('path', {d:d.d, fill:`var(${GUVAR[d.gu]})`, 'fill-opacity':.05}, gBase); });
-D.dongs.forEach(d => el('path', {d:d.d, fill:'none', stroke:'var(--dong)', 'stroke-width':1, 'stroke-dasharray':'3 3', ...NSS}, gBase));
-el('path', {d:D.land, fill:'none', stroke:'var(--coast)', 'stroke-width':1, ...NSS}, gBase);
-for(const g of GUS) el('path', {d:D.outlines[g], fill:'none', stroke:'var(--land)', 'stroke-width':6, 'stroke-linecap':'round', 'stroke-linejoin':'round', ...NSS}, gBase);
-for(const g of GUS) el('path', {d:D.outlines[g], fill:'none', stroke:`var(${GUVAR[g]})`, 'stroke-width':2.6, 'stroke-linecap':'round', 'stroke-linejoin':'round', ...NSS}, gBase);
-const gDong = el('g', {}, map), gGu = el('g', {}, map);
-D.dongs.forEach(d => { const t = el('text', {x:d.c[0], y:d.c[1], 'text-anchor':'middle', fill:'var(--muted)', 'font-weight':600, class:'dl', stroke:'var(--land)', 'paint-order':'stroke', 'stroke-linejoin':'round'}, gDong); t.textContent = d.nm; });
-for(const g of GUS){ const c = D.gulabels[g]; const t = el('text', {x:c[0], y:c[1], 'text-anchor':'middle', fill:`var(${GUVAR[g]})`, 'font-family':'var(--f-display)', class:'gl', opacity:.7, stroke:'var(--land)', 'paint-order':'stroke', 'stroke-linejoin':'round', 'letter-spacing':'.15em'}, gGu); t.textContent = g; }
+// base map: few, merged paths; stroke widths live on groups and follow the zoom (no non-scaling-stroke, which phones redraw slowly)
+const SW = [];
+const swG = (attrs, w, dash) => { const g = el('g', attrs, gBase); SW.push([g, w, dash]); return g; };
+el('path', {d:D.nb, fill:'var(--nb)'}, swG({stroke:'var(--nb-line)'}, 1));
+el('path', {d:D.land, fill:'none'}, swG({stroke:'var(--shade)', 'stroke-opacity':.16}, 5));
+el('path', {d:D.land, fill:'var(--land)'}, gBase);
+for(const g of GUS) el('path', {d:D.dongs.filter(d => d.gu === g).map(d => d.d).join(''), fill:`var(${GUVAR[g]})`, 'fill-opacity':.05}, gBase);
+el('path', {d:D.dongs.map(d => d.d).join(''), fill:'none'}, swG({stroke:'var(--dong)'}, 1, [3, 3]));
+el('path', {d:D.land, fill:'none'}, swG({stroke:'var(--coast)'}, 1));
+el('path', {d:GUS.map(g => D.outlines[g]).join(''), fill:'none'}, swG({stroke:'var(--land)', 'stroke-linecap':'round', 'stroke-linejoin':'round'}, 6));
+const gOut = swG({fill:'none', 'stroke-linecap':'round', 'stroke-linejoin':'round'}, 2.6);
+for(const g of GUS) el('path', {d:D.outlines[g], stroke:`var(${GUVAR[g]})`}, gOut);
+const gDong = el('g', {fill:'var(--muted)', 'font-weight':600, stroke:'var(--land)', 'paint-order':'stroke', 'stroke-linejoin':'round'}, map), gGu = el('g', {'font-family':'var(--f-display)', opacity:.7, stroke:'var(--land)', 'paint-order':'stroke', 'stroke-linejoin':'round', 'letter-spacing':'.15em'}, map);
+D.dongs.forEach(d => { const t = el('text', {x:d.c[0], y:d.c[1], 'text-anchor':'middle'}, gDong); t.textContent = d.nm; });
+for(const g of GUS){ const c = D.gulabels[g]; const t = el('text', {x:c[0], y:c[1], 'text-anchor':'middle', fill:`var(${GUVAR[g]})`}, gGu); t.textContent = g; }
 const gRing = el('g', {}, map), gPins = el('g', {}, map), gSchool = el('g', {}, map);
 
-let vb = [0, 0, pr.w, pr.h], anim = null;
-function setVB(v){ vb = v; map.setAttribute('viewBox', v.map(n=>n.toFixed(2)).join(' ')); scaleMarks(); }
+let vb = [0, 0, pr.w, pr.h], anim = null, vbNext = null, vbRaf = 0;
+function setVB(v){ vb = v; vbNext = null; map.setAttribute('viewBox', v.map(n=>n.toFixed(2)).join(' ')); scaleMarks(); placeHalo(); }
+/* pulse around the selected pin: an HTML layer animated by the compositor, so the map itself is not redrawn */
+const haloEl = document.createElement('div'); haloEl.className = 'halo'; haloEl.hidden = true; map.parentNode.appendChild(haloEl);
+let haloAt = null;
+function placeHalo(){
+  if(!haloAt) return; unitFast();
+  const k = Math.min(mapW / vb[2], mapH / vb[3]);
+  haloEl.style.left = `${(mapW - vb[2]*k)/2 + (haloAt[0] - vb[0])*k}px`; haloEl.style.top = `${(mapH - vb[3]*k)/2 + (haloAt[1] - vb[1])*k}px`;
+}
+function showHalo(r){
+  if(!r || matchMedia('(prefers-reduced-motion: reduce)').matches){ haloAt = null; haloEl.hidden = true; return; }
+  haloAt = P(r.lon, r.lat); haloEl.style.setProperty('--c', `var(--${r.cat})`);
+  haloEl.hidden = true; requestAnimationFrame(() => { haloEl.hidden = !haloAt; placeHalo(); });
+}
+function setVBSoon(v){ vbNext = v; if(!vbRaf) vbRaf = requestAnimationFrame(() => { vbRaf = 0; if(vbNext) setVB(vbNext); }); }
 function animTo(t){
-  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const reduce = matchMedia('(prefers-reduced-motion: reduce), (pointer: coarse)').matches;
   // keep aspect of the element
   const r = map.getBoundingClientRect(); const asp = r.width / Math.max(1, r.height);
   let [x, y, w, h] = t; const cx = x + w/2, cy = y + h/2;
@@ -76,16 +90,23 @@ function fitRadius(){
   animTo([x - ru, y - ru, ru*2, ru*2]);
 }
 function fitAll(){ animTo([-10, -10, pr.w + 20, pr.h + 20]); }
-function unit(){ const r = map.getBoundingClientRect(); return vb[2] / Math.max(1, r.width); } // svg units per css px
+function unit(){ return unitFast(); } // svg units per css px
+let MK = null, mkU = 0, mapW = 0, mapH = 0;
+function unitFast(){ if(!mapW){ const r = map.getBoundingClientRect(); mapW = r.width; mapH = r.height; } return vb[2] / Math.max(1, mapW); }
 function scaleMarks(){
-  const u = unit();
-  gPins.querySelectorAll('.pin').forEach(p => { const sc = p.classList.contains('hl') ? 1.55 : 1; p.firstChild.setAttribute('transform', `scale(${u*sc})`); });
-  gSchool.querySelectorAll('.sch').forEach(p => p.firstChild.setAttribute('transform', `scale(${u})`));
-  gDong.querySelectorAll('.dl').forEach(t => { t.setAttribute('font-size', 12*u); t.setAttribute('stroke-width', 3.5*u); t.style.display = u < .7 ? '' : 'none'; });
-  gGu.querySelectorAll('.gl').forEach(t => { t.setAttribute('font-size', 28*u); t.setAttribute('stroke-width', 5*u); });
-  gRing.querySelectorAll('[data-sw]').forEach(c => c.setAttribute('stroke-width', c.dataset.sw*u));
-  gRing.querySelectorAll('[data-dash]').forEach(c => c.setAttribute('stroke-dasharray', c.dataset.dash.split(' ').map(n => n*u).join(' ')));
-  gRing.querySelectorAll('text').forEach(t => { t.setAttribute('font-size', (t.dataset.fs||12)*u); t.setAttribute('stroke-width', 3.5*u); });
+  const u = unitFast();
+  if(MK && Math.abs(u - mkU) < 1e-9) return;
+  if(!MK) MK = {pins:[...gPins.querySelectorAll('.pin')], sch:[...gSchool.querySelectorAll('.sch')], sw:[...gRing.querySelectorAll('[data-sw]')], dash:[...gRing.querySelectorAll('[data-dash]')], rt:[...gRing.querySelectorAll('text')]};
+  mkU = u;
+  SW.forEach(([g, w, dash]) => { g.setAttribute('stroke-width', w*u); if(dash) g.setAttribute('stroke-dasharray', dash.map(n => n*u).join(' ')); });
+  MK.pins.forEach(p => p.firstChild.setAttribute('transform', `scale(${u * (p.classList.contains('hl') ? 1.55 : 1)})`));
+  MK.sch.forEach(p => p.firstChild.setAttribute('transform', `scale(${u})`));
+  const showDong = u < .7; gDong.style.display = showDong ? '' : 'none';
+  if(showDong){ gDong.setAttribute('font-size', 12*u); gDong.setAttribute('stroke-width', 3.5*u); }
+  gGu.setAttribute('font-size', 28*u); gGu.setAttribute('stroke-width', 5*u);
+  MK.sw.forEach(c => c.setAttribute('stroke-width', c.dataset.sw*u));
+  MK.dash.forEach(c => c.setAttribute('stroke-dasharray', c.dataset.dash.split(' ').map(n => n*u).join(' ')));
+  MK.rt.forEach(t => { t.setAttribute('font-size', (t.dataset.fs||12)*u); t.setAttribute('stroke-width', 3.5*u); });
 }
 function zoom(f){ const [x,y,w,h] = vb; const cx = x+w/2, cy = y+h/2; animTo([cx - w*f/2, cy - h*f/2, w*f, h*f]); }
 $('#zIn').onclick = () => zoom(.6); $('#zOut').onclick = () => zoom(1.6);
@@ -96,15 +117,17 @@ let drag = null;
 map.addEventListener('pointerdown', e => { drag = {x:e.clientX, y:e.clientY, vb:vb.slice(), moved:false}; });
 window.addEventListener('pointermove', e => { if(!drag) return; const u = unit(); const dx = (e.clientX-drag.x)*u, dy = (e.clientY-drag.y)*u;
   if(Math.abs(dx)+Math.abs(dy) > 3*u){ drag.moved = true; map.setPointerCapture?.(e.pointerId); }
-  if(drag.moved){ cancelAnimationFrame(anim); setVB([drag.vb[0]-dx, drag.vb[1]-dy, drag.vb[2], drag.vb[3]]); } });
+  if(drag.moved){ cancelAnimationFrame(anim); setVBSoon([drag.vb[0]-dx, drag.vb[1]-dy, drag.vb[2], drag.vb[3]]); } });
 window.addEventListener('pointerup', () => { setTimeout(()=>{ drag = null; }, 0); });
-map.addEventListener('wheel', e => { e.preventDefault(); const r = map.getBoundingClientRect(); const f = e.deltaY > 0 ? 1.15 : 1/1.15;
-  const mx = vb[0] + (e.clientX - r.left)/r.width*vb[2], my = vb[1] + (e.clientY - r.top)/r.height*vb[3];
-  cancelAnimationFrame(anim); setVB([mx - (mx-vb[0])*f, my - (my-vb[1])*f, vb[2]*f, vb[3]*f]); }, {passive:false});
+map.addEventListener('wheel', e => { e.preventDefault(); const r = map.getBoundingClientRect(); const f = e.deltaY > 0 ? 1.15 : 1/1.15; const v = vbNext || vb;
+  const mx = v[0] + (e.clientX - r.left)/r.width*v[2], my = v[1] + (e.clientY - r.top)/r.height*v[3];
+  cancelAnimationFrame(anim); setVBSoon([mx - (mx-v[0])*f, my - (my-v[1])*f, v[2]*f, v[3]*f]); }, {passive:false});
+let DRINGS = null;
 function dongAt(x, y){
-  const pt = map.createSVGPoint ? map.createSVGPoint() : null; if(!pt) return null; pt.x = x; pt.y = y;
-  const d = D.dongs.find(d => { try{ return d.el.isPointInFill(pt); }catch(e){ return false; } });
-  return d ? {dong: d.nm, gu: d.gu} : null;
+  if(!DRINGS) DRINGS = D.dongs.map(d => d.d.split('M').filter(Boolean).map(r => r.replace(/Z/g, '').trim().split(/\s+/).map(p => p.split(',').map(Number))));
+  const inRing = pts => { let c = false; for(let i = 0, j = pts.length - 1; i < pts.length; j = i++){ const [xi, yi] = pts[i], [xj, yj] = pts[j]; if((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) c = !c; } return c; };
+  const k = DRINGS.findIndex(rings => rings.reduce((c, r) => inRing(r) ? !c : c, false));
+  return k >= 0 ? {dong: D.dongs[k].nm, gu: D.dongs[k].gu} : null;
 }
 map.addEventListener('click', e => {
   if(drag && drag.moved) return;
@@ -132,7 +155,7 @@ const q = $('#q'), opts = $('#opts'); let optSel = -1, optList = [];
 function norm(s){ return s.replace(/\s/g,'').replace(/등학교$|학교$/,''); }
 function showOpts(force){
   const t = norm(q.value);
-  optList = D.schools.filter(s => (S.gu === '전체' || s.gu === S.gu) && (S.lv === '전체' || s.lv === S.lv) && (!t || norm(s.name).includes(t) || s.name.includes(q.value.trim())));
+  optList = SCHOOLS.filter(s => (S.gu === '전체' || s.gu === S.gu) && (S.lv === '전체' || s.lv === S.lv) && (!t || norm(s.name).includes(t) || s.name.includes(q.value.trim())));
   const rank = x => { if(!t) return 0; const n = norm(x.name); return n === t ? 0 : n.startsWith(t) ? 1 : 2; };
   optList.sort((a,b) => rank(a) - rank(b) || '기초중고'.indexOf(a.lv) - '기초중고'.indexOf(b.lv) || a.name.localeCompare(b.name, 'ko'));
   if(!force && !t){ opts.hidden = true; q.setAttribute('aria-expanded', 'false'); return; }
@@ -214,7 +237,7 @@ const keyOf = r => r.gu + r.no;
 const isSel = r => S.sel && keyOf(r) === S.sel;
 function drawMap(){
   const sc = S.school; const [sx, sy] = P(sc.lon, sc.lat);
-  gRing.innerHTML = ''; gPins.innerHTML = ''; gSchool.innerHTML = '';
+  gRing.innerHTML = ''; gPins.innerHTML = ''; gSchool.innerHTML = ''; MK = null;
   const ru = S.r / mPerUnit;
   el('circle', {cx:sx, cy:sy, r:ru, fill:'url(#ringG)'}, gRing);
   el('circle', {cx:sx, cy:sy, r:ru, fill:'none', stroke:'var(--accent)', 'data-sw':2, 'data-dash':'8 6'}, gRing);
@@ -233,12 +256,8 @@ function drawMap(){
     const [x, y] = P(r.lon, r.lat); const on = isSel(r);
     const g = el('g', {class:'pin' + (on ? ' hl' : ''), transform:`translate(${x},${y})`, opacity: sel && !on ? .38 : 1}, gPins);
     const inner = el('g', {}, g);
-    if(on && !matchMedia('(prefers-reduced-motion: reduce)').matches){
-      const halo = el('circle', {cx:0, cy:0, r:6, fill:`var(--${r.cat})`, opacity:.5}, inner);
-      halo.innerHTML = '<animate attributeName="r" values="4;22" dur="1.6s" repeatCount="indefinite"/><animate attributeName="opacity" values=".55;0" dur="1.6s" repeatCount="indefinite"/>';
-    }
     el('ellipse', {cx:0, cy:0, rx:5, ry:2, fill:'#000', opacity:.22}, inner);
-    el('path', {d:'M0 0 C-4 -6 -12 -11 -12 -20 A12 12 0 1 1 12 -20 C12 -11 4 -6 0 0Z', fill:`var(--${r.cat})`, stroke:'#fff', 'stroke-width':2, filter:'url(#pinSh)', ...(r.ap ? {'stroke-dasharray':'4 2.5'} : {})}, inner);
+    el('path', {d:'M0 0 C-4 -6 -12 -11 -12 -20 A12 12 0 1 1 12 -20 C12 -11 4 -6 0 0Z', fill:`var(--${r.cat})`, stroke:'#fff', 'stroke-width':2, ...(r.ap ? {'stroke-dasharray':'4 2.5'} : {})}, inner);
     el('use', {href:`#g-${r.cat}`, x:-11, y:-31, width:22, height:22}, inner);
     if(on){ // name callout above the pin (scaled with pin: 1.55x, so sizes are divided)
       const k = 1/1.55, fs = 14*k, w = (r.name.length*14 + 26)*k, h = 26*k, yy = -40 - h - 4*k;
@@ -249,14 +268,15 @@ function drawMap(){
     const tt = el('title', {}, g); tt.textContent = `${r.name} · ${fmtD(r.m)}`;
     g.addEventListener('click', e => { if(drag && drag.moved) return; e.stopPropagation(); select(r, true); });
   });
+  showHalo(sel);
   if(sel) map.insertBefore(gSchool, gPins); else map.appendChild(gSchool);
   const sg = el('g', {class:'sch', transform:`translate(${sx},${sy})`, opacity: sel ? .38 : 1}, gSchool); const si = el('g', {}, sg);
   if(sc.custom){
     el('circle', {r:15, fill:'var(--focus)', 'fill-opacity':.25, stroke:'var(--focus)', 'stroke-width':2.5}, si);
-    el('circle', {r:6, fill:'var(--focus)', stroke:'#fff', 'stroke-width':2.5, filter:'url(#pinSh)'}, si);
+    el('circle', {r:6, fill:'var(--focus)', stroke:'#fff', 'stroke-width':2.5}, si);
     el('path', {d:'M0 -24 V-16 M0 16 V24 M-24 0 H-16 M16 0 H24', stroke:'var(--focus)', 'stroke-width':2.5, 'stroke-linecap':'round'}, si);
   } else {
-  el('circle', {r:17, fill:'var(--accent)', stroke:'#fff', 'stroke-width':3, filter:'url(#pinSh)'}, si);
+  el('circle', {r:17, fill:'var(--accent)', stroke:'#fff', 'stroke-width':3}, si);
   el('use', {href:'#g-school', x:-14, y:-14, width:28, height:28}, si);
   }
   const sl = el('text', {class:'lab', y:33, 'text-anchor':'middle', 'font-size':13.5, 'font-weight':700, fill:'var(--ink)', stroke:'var(--land)', 'stroke-width':4, 'paint-order':'stroke'}, si); sl.textContent = sc.name;
@@ -269,11 +289,19 @@ function ensureVisible(r){
   if(!inside){ const [sx, sy] = P(S.school.lon, S.school.lat);
     const cx = innerWidth > 900 ? x - (left - pad)/2 : x; animTo([cx - vb[2]/2, y - vb[3]/2 + 40*u, vb[2], vb[3]]); }
 }
+function ensureVisibleSheet(r, mapTop){
+  const [x, y] = P(r.lon, r.lat); const u = unit(); unitFast();
+  const sheet = info.hidden ? 0 : info.getBoundingClientRect().height;
+  const lo = Math.max(0, -mapTop), hi = Math.min(mapH, innerHeight - sheet - mapTop);
+  if(hi - lo < 90) return ensureVisible(r);
+  const target = lo + (hi - lo) * 0.62; // a little below the middle, leaving room for the name tag above the pin
+  animTo([x - vb[2]/2, y - target*u, vb[2], vb[3]]);
+}
 function select(r, fromMap){
   S.sel = isSel(r) ? null : keyOf(r);
   document.querySelectorAll('.item').forEach(i => i.classList.toggle('on', i.dataset.key === S.sel));
   drawMap();
-  if(S.sel){ showInfo(r); ensureVisible(r); } else hideInfo();
+  if(S.sel){ showInfo(r); if(innerWidth <= 900) ensureVisibleSheet(r, fromMap ? map.getBoundingClientRect().top : 0); else ensureVisible(r); } else hideInfo();
   if(S.sel && fromMap){ const it = document.querySelector(`.item[data-key="${keyOf(r)}"]`); it?.scrollIntoView({behavior:'smooth', block:'nearest'}); }
   if(S.sel && !fromMap && innerWidth <= 900) map.scrollIntoView({behavior:'smooth', block:'start'});
 }
@@ -319,7 +347,8 @@ function showInfo(r){
   const [, items, when] = SUP.find(([re]) => re.test(r.name + ' ' + r.desc));
   const tel = r.ph && r.ph !== '-' ? r.ph : '';
   info.style.setProperty('--c', `var(--${r.cat})`);
-  info.innerHTML = `
+  info.innerHTML = `<div class="ihead">
+    <button class="grab" type="button" aria-label="안내 창 크게 보기"><span></span></button>
     <div class="ib">
       ${icon(r.cat, 34)}
       <div style="min-width:0;flex:1">
@@ -329,12 +358,13 @@ function showInfo(r){
       </div>
       <button class="ix" type="button" aria-label="닫기">✕</button>
     </div>
+    <div class="iact">${tel ? `<a class="call big" href="tel:${tel.replace(/[^0-9]/g,'')}" target="_top" aria-label="${r.name}에 전화 걸기 ${tel}"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z" fill="currentColor"/></svg>${tel}</a><button class="copy" type="button">번호 복사</button>` : '<span class="addr">전화번호 없음</span>'}</div></div><div class="ibody">
     <p class="iwhat">${CATINFO[r.cat]}</p>
     <div class="prog" id="prog">${progHTML(r, items)}</div>
     <div class="iwhen"><b>이럴 때 연계해요</b> ${when}</div>
     <div class="iaddr">${r.addr}${r.ap ? ' <span class="tag">대략 위치</span>' : ''}</div>
-    <div class="iact">${tel ? `<a class="call big" href="tel:${tel.replace(/[^0-9]/g,'')}" target="_top" aria-label="${r.name}에 전화 걸기 ${tel}"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z" fill="currentColor"/></svg>${tel}</a><button class="copy" type="button">번호 복사</button>` : '<span class="addr">전화번호 없음</span>'}</div>`;
-  info.hidden = false; P2.shown = r; P2.items = items; bindProg();
+    </div>`;
+  info.classList.toggle('full', P2.editing === ikey(r)); info.hidden = false; P2.shown = r; P2.items = items; bindProg(); bindSheet();
   info.querySelector('.ix').onclick = () => { S.sel = null; hideInfo(); document.querySelectorAll('.item.on').forEach(i => i.classList.remove('on')); drawMap(); };
   const cp = info.querySelector('.copy'); if(cp) cp.onclick = () => copy(tel, `${tel} 복사했어요`);
 }
@@ -360,12 +390,10 @@ function progHTML(r, items){
   if(P2.editing === ikey(r)) return editHTML();
   const list = rec?.items?.length ? rec.items : base;
   const head = `<div class="ih">초·중학생과 부모가 받을 수 있는 프로그램${canEditInst(r) ? '<button class="pedit" type="button" id="pEdit">정원·참여 입력</button>' : ''}</div>`;
-  let note = '';
   const lis = list.map(it => {
     const st = seatOf(it);
     let seat = '';
     if(st) seat = `<span class="seat ${st.cls}"><span>정원 ${st.to}</span><span>참여 ${st.cur}</span><b>${st.left ? `참가 가능 ${st.left}명` : '마감'}</b></span>`;
-    else seat = '<span class="seat none">정원 미입력</span>';
     return `<li><div class="prow"><div class="pname"><b>${esc(it.name)}</b>${it.who ? `<span class="who">${esc(it.who)}</span>` : ''}</div>${seat}</div>${it.desc ? `<span class="pd">${esc(it.desc)}</span>` : ''}</li>`;
   }).join('');
   const upd = rec?.updatedAt ? `<div class="inote">정원·참여 현황 갱신: ${new Date(rec.updatedAt).toLocaleDateString('ko-KR', {month:'long', day:'numeric'})}</div>` : '';
@@ -375,7 +403,7 @@ function progHTML(r, items){
   const ginfo = /청소년상담복지/.test(r.name) ? [['긴급 상담', '청소년전화 1388(24시간, 문자·카카오톡 가능)']] : /경찰서/.test(r.name) ? [['신고', '학교폭력 117(문자 #0117), 범죄·아동학대 112']] : /정신건강/.test(r.name) ? [['위기 상담', '정신건강 위기상담 1577-0199(24시간)']] : [];
   const infoList = [...(pg?.info || []), ...ginfo];
   const info = infoList.length ? `<div class="iinfo"><b>이용 안내</b>${infoList.map(([l, t]) => `<div><span>${esc(l)}</span>${esc(t)}</div>`).join('')}</div>` : '';
-  return head + note + `<ul class="iul">${lis}</ul>` + info + upd + foot;
+  return head + `<ul class="iul">${lis}</ul>` + info + upd + foot;
 }
 function editHTML(){
   const rows = P2.draft.map((it, i) => `
@@ -406,7 +434,7 @@ function bindProg(){
   if(ed) ed.onclick = () => {
     const rec = P2.data[ikey(r)];
     P2.draft = (rec?.items?.length ? rec.items : progBase(r, P2.items)).map(it => ({...it}));
-    P2.editing = ikey(r); P2.msg = ''; paintProg(); document.getElementById('et0')?.focus();
+    P2.editing = ikey(r); P2.msg = ''; info.classList.add('full'); paintProg(); document.getElementById('et0')?.focus();
   };
   const add = document.getElementById('pAdd'); if(add) add.onclick = () => { readDraft(); P2.draft.push({name:'', desc:'', who:'', to:null, cur:null}); paintProg(); document.getElementById('en' + (P2.draft.length-1))?.focus(); };
   document.querySelectorAll('#prog .edel').forEach(b => b.onclick = () => { readDraft(); P2.draft.splice(+b.closest('.erow').dataset.i, 1); paintProg(); });
@@ -438,32 +466,40 @@ function fillSeatChips(){
     sp.textContent = left ? `참가 가능 ${left}명` : '모두 마감';
   });
 }
-/* ---------- web: Supabase login, seat loading and live updates ---------- */
+/* ---------- web: Supabase (seats are read with one plain request; the login library loads only when needed) ---------- */
 const CFG = window.APP_CONFIG || {};
-const SB_ON = !!(CFG.supabaseUrl && CFG.supabaseAnonKey && window.supabase && !/YOUR_/.test(CFG.supabaseUrl + CFG.supabaseAnonKey));
-if(SB_ON){
-  P2.sb = window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseAnonKey, {auth: {persistSession: true, autoRefreshToken: true}});
+const SB_ON = !!(CFG.supabaseUrl && CFG.supabaseAnonKey && !/YOUR_/.test(CFG.supabaseUrl + CFG.supabaseAnonKey));
+const SB_LIB = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js';
+let sbLoading = null;
+function getSb(){
+  if(P2.sb) return Promise.resolve(P2.sb);
+  if(!sbLoading) sbLoading = new Promise((ok, no) => {
+    const s = document.createElement('script'); s.src = SB_LIB; s.crossOrigin = 'anonymous';
+    s.onload = () => {
+      try{
+        P2.sb = window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseAnonKey, {auth: {persistSession: true, autoRefreshToken: true}});
+        P2.sb.auth.onAuthStateChange(evt => { if(evt === 'SIGNED_OUT' || evt === 'TOKEN_REFRESHED') refreshMe(); });
+        ok(P2.sb);
+      }catch(e){ sbLoading = null; no(e); }
+    };
+    s.onerror = () => { sbLoading = null; s.remove(); no(new Error('supabase-js')); };
+    document.head.appendChild(s);
+  });
+  return sbLoading;
 }
 function canEditInst(r){ return !!(P2.sb && P2.email && (P2.isAdmin || P2.assigned.has(ikey(r)))); }
 
 async function loadSeats(){
-  if(!P2.sb) return;
-  const { data, error } = await P2.sb.from('seats').select('inst_key,items,updated_at');
-  if(error){ console.warn('seats', error.message); return; }
-  for(const k in SEATS) delete SEATS[k];
-  (data || []).forEach(row => { SEATS[row.inst_key] = {items: Array.isArray(row.items) ? row.items : [], updatedAt: row.updated_at}; });
-  if(!P2.editing) paintProg();
-  fillSeatChips();
-}
-function subscribeSeats(){
-  P2.sb.channel('seats-live')
-    .on('postgres_changes', {event: '*', schema: 'public', table: 'seats'}, p => {
-      if(p.eventType === 'DELETE'){ if(p.old && p.old.inst_key) delete SEATS[p.old.inst_key]; }
-      else if(p.new && p.new.inst_key){ SEATS[p.new.inst_key] = {items: Array.isArray(p.new.items) ? p.new.items : [], updatedAt: p.new.updated_at}; }
-      if(!P2.editing) paintProg();
-      fillSeatChips();
-    })
-    .subscribe();
+  if(!SB_ON) return;
+  try{
+    const res = await fetch(CFG.supabaseUrl.replace(/\/+$/, '') + '/rest/v1/seats?select=inst_key,items,updated_at', {headers: {apikey: CFG.supabaseAnonKey}});
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    for(const k in SEATS) delete SEATS[k];
+    (data || []).forEach(row => { SEATS[row.inst_key] = {items: Array.isArray(row.items) ? row.items : [], updatedAt: row.updated_at}; });
+    if(!P2.editing) paintProg();
+    fillSeatChips();
+  }catch(e){ console.warn('seats', e.message); }
 }
 
 /* who am I */
@@ -482,7 +518,7 @@ async function refreshMe(){
 }
 function paintLogin(){
   const btn = $('#loginBtn'), st = $('#whoState'), mine = $('#mineBox'), list = $('#mineList');
-  if(!P2.sb){ btn.hidden = true; st.hidden = true; mine.hidden = true; return; }
+  if(!SB_ON){ btn.hidden = true; st.hidden = true; mine.hidden = true; return; }
   if(!P2.email){ btn.hidden = false; st.hidden = true; mine.hidden = true; return; }
   btn.hidden = true; st.hidden = false;
   const n = P2.assigned.size;
@@ -513,7 +549,7 @@ function openInst(k){
 /* login dialog: email -> one-time code */
 const lg = {wrap: $('#lgWrap'), s1: $('#lgStep1'), s2: $('#lgStep2'), msg: $('#lgMsg'), email: ''};
 function lgMsg(t){ lg.msg.textContent = t || ''; lg.msg.hidden = !t; }
-function openLogin(){ lg.wrap.hidden = false; lg.s1.hidden = false; lg.s2.hidden = true; lgMsg(''); $('#lgEmail').focus(); }
+function openLogin(){ getSb().catch(() => {}); lg.wrap.hidden = false; lg.s1.hidden = false; lg.s2.hidden = true; lgMsg(''); $('#lgEmail').focus(); }
 function closeLogin(){ lg.wrap.hidden = true; }
 $('#loginBtn').onclick = openLogin;
 $('#lgClose').onclick = closeLogin;
@@ -526,6 +562,7 @@ lg.s1.addEventListener('submit', async e => {
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ lgMsg('이메일 주소 형식을 확인해 주세요.'); return; }
   const btn = $('#lgSend'); btn.disabled = true; lgMsg('');
   try{
+    await getSb();
     const reg = await P2.sb.rpc('is_registered', {p_email: email});
     if(reg.error) throw reg.error;
     if(reg.data !== true){ lgMsg('등록되지 않은 이메일이에요. 서부교육지원청 담당 장학사에게 담당자 등록을 요청해 주세요.'); return; }
@@ -551,16 +588,33 @@ lg.s2.addEventListener('submit', async e => {
   closeLogin(); await refreshMe(); toast('로그인했어요');
 });
 
-if(P2.sb){
-  P2.sb.auth.onAuthStateChange(evt => { if(evt === 'SIGNED_OUT' || evt === 'TOKEN_REFRESHED') refreshMe(); });
-  loadSeats().then(subscribeSeats);
-  refreshMe();
-}else{
-  paintLogin();
+paintLogin();
+if(SB_ON){
+  loadSeats();
+  // refresh the counts when the page comes back into view, and every 2 minutes while it is open
+  document.addEventListener('visibilitychange', () => { if(!document.hidden) loadSeats(); });
+  setInterval(() => { if(!document.hidden) loadSeats(); }, 120000);
+  // a staff member who logged in before: load the login library in the background
+  let hasSession = false; try{ hasSession = Object.keys(localStorage).some(k => /^sb-.+-auth-token$/.test(k)); }catch(e){}
+  if(hasSession) getSb().then(refreshMe).catch(() => {});
 }
 
 
-function hideInfo(){ info.hidden = true; P2.shown = null; P2.editing = null; }
+function hideInfo(){ info.hidden = true; info.classList.remove('full'); P2.shown = null; P2.editing = null; }
+/* phone sheet: tap the handle or "자세히 보기" to enlarge, scroll the details to enlarge, swipe the top down to shrink or close */
+function bindSheet(){
+  const body = info.querySelector('.ibody'), head = info.querySelector('.ihead');
+  const grow = on => info.classList.toggle('full', on);
+  info.querySelector('.grab').onclick = () => grow(!info.classList.contains('full'));
+  body.addEventListener('scroll', () => { if(body.scrollTop > 24 && innerWidth <= 900) grow(true); }, {passive: true});
+  let y0 = null;
+  head.addEventListener('touchstart', e => { y0 = e.target.closest('a,button:not(.grab)') ? null : e.touches[0].clientY; }, {passive: true});
+  head.addEventListener('touchend', e => {
+    if(y0 === null) return; const dy = e.changedTouches[0].clientY - y0; y0 = null;
+    if(dy < -30) grow(true);
+    else if(dy > 50){ if(info.classList.contains('full')) grow(false); else info.querySelector('.ix').click(); }
+  }, {passive: true});
+}
 document.addEventListener('keydown', e => { if(e.key === 'Escape' && !info.hidden) info.querySelector('.ix').click(); });
 
 /* ---------- copy ---------- */
@@ -580,11 +634,11 @@ $('#copyAll').onclick = () => {
 };
 
 try{ const ro = JSON.parse(sessionStorage.getItem('swk-reopen') || 'null');
-  if(ro && ro.school){ sessionStorage.removeItem('swk-reopen'); S.school = ro.school; if(ro.r) S.r = ro.r; S.reopen = ro.sel; } }catch(e){}
+  if(ro && ro.school){ sessionStorage.removeItem('swk-reopen'); S.school = ro.school; if([500, 1000, 2000].includes(ro.r)) S.r = ro.r; S.reopen = ro.sel; } }catch(e){}
 render();
 q.value = '';
 if(S.reopen){ const t = current.find(x => keyOf(x) === S.reopen); S.reopen = null; if(t) setTimeout(() => select(t, false), 350); }
 setVB([-10, -10, pr.w + 20, pr.h + 20]);
 requestAnimationFrame(() => { const r = map.getBoundingClientRect(); const asp = r.width/Math.max(1,r.height);
   const [x,y] = P(S.school.lon, S.school.lat); const ru = S.r / mPerUnit * 1.18; let w = ru*2, h = ru*2; if(w/h < asp) w = h*asp; else h = w/asp; setVB([x-w/2, y-h/2, w, h]); });
-addEventListener('resize', () => scaleMarks());
+(window.ResizeObserver ? new ResizeObserver(() => { mapW = 0; MK = null; scaleMarks(); }).observe(map) : addEventListener('resize', () => { mapW = 0; MK = null; scaleMarks(); }));
