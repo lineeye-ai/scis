@@ -153,8 +153,8 @@ chips($('#guChips'), GUS, 'gu'); chips($('#lvChips'), ['초','중','고'], 'lv')
 
 const q = $('#q'), opts = $('#opts'); let optSel = -1, optList = [];
 function norm(s){ return s.replace(/\s/g,'').replace(/등학교$|학교$/,''); }
-function showOpts(force){
-  const t = norm(q.value);
+function showOpts(force, all){
+  const t = all ? '' : norm(q.value);
   optList = SCHOOLS.filter(s => (S.gu === '전체' || s.gu === S.gu) && (S.lv === '전체' || s.lv === S.lv) && (!t || norm(s.name).includes(t) || s.name.includes(q.value.trim())));
   const rank = x => { if(!t) return 0; const n = norm(x.name); return n === t ? 0 : n.startsWith(t) ? 1 : 2; };
   optList.sort((a,b) => rank(a) - rank(b) || '기초중고'.indexOf(a.lv) - '기초중고'.indexOf(b.lv) || a.name.localeCompare(b.name, 'ko'));
@@ -165,8 +165,15 @@ function showOpts(force){
     opts.appendChild(b); });
   optSel = -1; opts.hidden = false; q.setAttribute('aria-expanded', 'true');
 }
-q.addEventListener('input', () => showOpts(false));
-q.addEventListener('focus', () => { showOpts(true); q.closest('.card').classList.add('searching'); });
+// open the school list whenever the box is focused, tapped again, typed in or emptied
+function openOpts(){
+  const same = S.school && !S.school.custom && q.value === S.school.name; // the chosen school's name is still in the box: show every school
+  showOpts(true, same); if(same) q.select();
+  q.closest('.card').classList.add('searching');
+}
+q.addEventListener('input', () => { showOpts(true); q.closest('.card').classList.add('searching'); });
+q.addEventListener('focus', openOpts);
+q.addEventListener('click', () => { if(opts.hidden) openOpts(); });
 document.addEventListener('pointerdown', e => { const c = q.closest('.card'); if(!c.contains(e.target)) c.classList.remove('searching'); });
 q.addEventListener('blur', () => setTimeout(() => { opts.hidden = true; q.setAttribute('aria-expanded','false'); }, 120));
 q.addEventListener('keydown', e => {
