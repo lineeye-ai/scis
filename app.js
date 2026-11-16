@@ -407,7 +407,8 @@ function progHTML(r, items){
   const lis = list.map(it => {
     const st = seatOf(it);
     let seat = '';
-    if(st) seat = `<span class="seat ${st.cls}"><span>정원 ${st.to}</span><span>참여 ${st.cur}</span><b>${st.left ? `참가 가능 ${st.left}명` : '마감'}</b></span>`;
+    if(st) seat = `<span class="seat ${st.cls}"><span>정원 ${st.to}</span><span>참여 ${st.cur}</span><b>${st.left ? `참가 가능 ${st.left}명` : '마감'}</b><i class="led ${st.left ? 'g' : 'r'}" role="img" aria-label="${st.left ? '참가 가능' : '마감'}" title="${st.left ? '참가 가능' : '마감'}"></i></span>`;
+    else seat = '<span class="seat solo"><i class="led y" role="img" aria-label="확인 필요" title="확인 필요"></i></span>';
     return `<li><div class="prow"><div class="pname"><b>${esc(it.name)}</b>${it.who ? `<span class="who">${esc(it.who)}</span>` : ''}</div>${seat}</div>${it.desc ? `<span class="pd">${esc(it.desc)}</span>` : ''}</li>`;
   }).join('');
   const upd = rec?.updatedAt ? `<div class="inote">정원·참여 현황 갱신: ${new Date(rec.updatedAt).toLocaleDateString('ko-KR', {month:'long', day:'numeric'})}</div>` : '';

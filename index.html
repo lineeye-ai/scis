@@ -138,7 +138,12 @@ footer{display:flex;flex-direction:column;gap:8px;font-size:12.5px;color:var(--m
 .prog .who{white-space:nowrap}
 .seat{display:inline-flex;gap:6px;align-items:center;font-size:12px;font-variant-numeric:tabular-nums;border-radius:8px;padding:2px 8px;background:var(--bg);color:var(--muted);white-space:nowrap}
 .seat b{color:var(--ink)}
-.seat.ok b{color:var(--ok)} .seat.few b{color:var(--warn)} .seat.full b{color:var(--bad)}
+.seat.ok b,.seat.few b{color:var(--ok)} .seat.full b{color:var(--bad)}
+.seat.solo{background:none;padding:2px 8px}
+.led{display:inline-block;flex:none;width:10px;height:10px;border-radius:50%;margin-left:1px}
+.led.g{background:radial-gradient(circle at 35% 30%,#B9F5CF 0 18%,#22C55E 55%,#15803D);box-shadow:0 0 0 1px rgba(21,128,61,.35),0 0 6px 1px rgba(34,197,94,.55)}
+.led.r{background:radial-gradient(circle at 35% 30%,#FFD0CC 0 18%,#EF4444 55%,#B91C1C);box-shadow:0 0 0 1px rgba(185,28,28,.35),0 0 6px 1px rgba(239,68,68,.55)}
+.led.y{background:radial-gradient(circle at 35% 30%,#FFF4C2 0 18%,#FACC15 55%,#CA8A04);box-shadow:0 0 0 1px rgba(202,138,4,.4),0 0 6px 1px rgba(250,204,21,.6)}
 .seat.none{font-style:normal;opacity:.8}
 .avail{display:block;margin-top:3px;font-size:11.5px;font-weight:700;border-radius:999px;padding:1px 7px;white-space:nowrap}
 .avail.ok{color:var(--ok);background:color-mix(in srgb,var(--ok) 12%,transparent)}
@@ -482,8 +487,8 @@ footer{display:flex;flex-direction:column;gap:8px;font-size:12.5px;color:var(--m
     <p class="lgnote">담당자 확인을 위해 이메일 주소만 사용하고, 담당 기간 동안 보관해요. 정원·참여 수 말고 학생 개인정보는 입력하지 마세요.</p>
   </section>
 </div>
-<script src="config.js?v=b6ddbc52"></script>
-<script src="data/app-data.js?v=b6ddbc52"></script>
-<script src="app.js?v=b6ddbc52"></script>
+<script src="config.js?v=727b82d3"></script>
+<script src="data/app-data.js?v=727b82d3"></script>
+<script src="app.js?v=727b82d3"></script>
 </body>
 </html>
