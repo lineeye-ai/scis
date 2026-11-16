@@ -57,7 +57,6 @@ header p{margin:6px 0 0;color:var(--muted);font-size:14px;max-width:62ch}
 /* school picker */
 .combo{position:relative}
 .qbox{position:relative}
-.omine{font-size:11px;font-weight:600;color:var(--accent);background:var(--accent-soft);border-radius:6px;padding:1px 6px;margin-left:4px;vertical-align:1px}
 .combo input{width:100%;font:inherit;font-size:16px;padding:11px 14px 11px 40px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
 .combo input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
 .combo svg.s{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--muted)}
@@ -260,7 +259,8 @@ footer{display:flex;flex-direction:column;gap:8px;font-size:12.5px;color:var(--m
 .lgform input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
 .lgform .call{align-self:flex-start;border:0;cursor:pointer;font:inherit;font-weight:700}
 .lgnote{margin:0;font-size:12px;color:var(--muted)}
-.mine .chip{border-color:var(--accent);color:var(--accent)}
+.mine .chip{border-color:var(--accent);color:var(--accent);font-weight:600;display:inline-flex;align-items:center;gap:4px}
+.mine .chip .go{font-weight:700}
 
 /* computer screens: the whole app fits one screen — the left panel scrolls by itself, the map fills the rest */
 @media (min-width:901px){
@@ -418,7 +418,7 @@ footer{display:flex;flex-direction:column;gap:8px;font-size:12.5px;color:var(--m
           <button class="linkbtn" id="backBtn" type="button" hidden>← 돌아가기</button>
         </div>
         <div class="mine" id="mineBox" hidden>
-          <div class="lbl" style="margin:12px 0 6px">내가 입력할 기관 <span style="font-weight:500;letter-spacing:0">· 누르면 바로 입력 화면이 열려요</span></div>
+          <div class="lbl" style="margin:12px 0 6px"><span style="white-space:nowrap">내 기관으로 바로가기</span> <span style="font-weight:500;letter-spacing:0">· 누르면 입력 화면이 열려요</span></div>
           <div class="chips" id="mineList"></div>
         </div>
       </section>
@@ -488,8 +488,8 @@ footer{display:flex;flex-direction:column;gap:8px;font-size:12.5px;color:var(--m
     <p class="lgnote">담당자 확인을 위해 이메일 주소만 사용하고, 담당 기간 동안 보관해요. 정원·참여 수 말고 학생 개인정보는 입력하지 마세요.</p>
   </section>
 </div>
-<script src="config.js?v=9f34a7b9"></script>
-<script src="data/app-data.js?v=9f34a7b9"></script>
-<script src="app.js?v=9f34a7b9"></script>
+<script src="config.js?v=28e60ff9"></script>
+<script src="data/app-data.js?v=28e60ff9"></script>
+<script src="app.js?v=28e60ff9"></script>
 </body>
 </html>
