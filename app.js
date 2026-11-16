@@ -153,21 +153,53 @@ chips($('#guChips'), GUS, 'gu'); chips($('#lvChips'), ['초','중','고'], 'lv')
 
 const q = $('#q'), opts = $('#opts'); let optSel = -1, optList = [];
 function norm(s){ return s.replace(/\s/g,'').replace(/등학교$|학교$/,''); }
+/* what the box searches: everyone → schools, institution staff → institutions, admins → both */
+function searchMode(){ return !P2.email ? 'school' : P2.isAdmin ? 'both' : 'inst'; }
+const SMODE = {
+  school: {lbl:'기준 학교', ph:'학교 이름 입력 (예: 서부초)', none:'맞는 학교가 없어요. 지도에서 위치를 골라 보세요.'},
+  inst: {lbl:'기관 찾기', ph:'기관 이름 입력 (예: 서구종합사회복지관)', none:'맞는 기관이 없어요.'},
+  both: {lbl:'학교·기관 찾기', ph:'학교나 기관 이름 입력', none:'맞는 학교나 기관이 없어요.'}
+};
+function applySearchMode(){
+  const m = searchMode(), c = SMODE[m];
+  $('#l-school').textContent = c.lbl; q.placeholder = c.ph;
+  $('#lvChips').closest('.row').hidden = m === 'inst';
+  if(m === 'inst' && S.lv !== '전체'){ S.lv = '전체'; $('#lvChips').querySelectorAll('.chip').forEach((b, i) => b.setAttribute('aria-pressed', i === 0)); }
+  if(!opts.hidden) showOpts(true);
+}
 function showOpts(force, all){
-  const t = all ? '' : norm(q.value);
-  optList = SCHOOLS.filter(s => (S.gu === '전체' || s.gu === S.gu) && (S.lv === '전체' || s.lv === S.lv) && (!t || norm(s.name).includes(t) || s.name.includes(q.value.trim())));
+  const m = searchMode();
+  const t = all ? '' : norm(q.value), raw = q.value.trim().replace(/\s/g, '');
+  const hit = name => !t || norm(name).includes(t) || name.replace(/\s/g, '').includes(raw);
+  const sch = m === 'inst' ? [] : SCHOOLS.filter(s => (S.gu === '전체' || s.gu === S.gu) && (S.lv === '전체' || s.lv === S.lv) && hit(s.name)).map(s => ({k:'s', s, name:s.name}));
+  const ins = m === 'school' || (m === 'both' && S.lv !== '전체') ? [] : D.res.filter(r => (S.gu === '전체' || r.gu === S.gu) && hit(r.name)).map(r => ({k:'i', r, name:r.name, mine:P2.assigned.has(ikey(r))}));
+  optList = sch.concat(ins);
   const rank = x => { if(!t) return 0; const n = norm(x.name); return n === t ? 0 : n.startsWith(t) ? 1 : 2; };
-  optList.sort((a,b) => rank(a) - rank(b) || '기초중고'.indexOf(a.lv) - '기초중고'.indexOf(b.lv) || a.name.localeCompare(b.name, 'ko'));
+  optList.sort((a,b) => (b.mine ? 1 : 0) - (a.mine ? 1 : 0) || rank(a) - rank(b) || (a.k === b.k ? 0 : a.k === 's' ? -1 : 1)
+    || (a.k === 's' ? '기초중고'.indexOf(a.s.lv) - '기초중고'.indexOf(b.s.lv) : 0) || a.name.localeCompare(b.name, 'ko'));
   if(!force && !t){ opts.hidden = true; q.setAttribute('aria-expanded', 'false'); return; }
-  opts.innerHTML = optList.length ? '' : '<div class="opt" aria-disabled="true">맞는 학교가 없어요. 지도에서 위치를 골라 보세요.</div>';
-  optList.forEach((s, i) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'opt'; b.setAttribute('role', 'option'); b.id = 'o' + i;
-    b.innerHTML = `<span>${s.name}</span><small>${s.gu} · ${LV[s.lv]}</small>`; b.onmousedown = e => e.preventDefault(); b.onclick = () => { setSchool(s); };
+  opts.innerHTML = optList.length ? '' : `<div class="opt" aria-disabled="true">${SMODE[m].none}</div>`;
+  optList.forEach((o, i) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'opt'; b.setAttribute('role', 'option'); b.id = 'o' + i;
+    b.innerHTML = o.k === 's' ? `<span>${o.s.name}</span><small>${o.s.gu} · ${LV[o.s.lv]}</small>`
+      : `<span>${esc(o.r.name)}${o.mine ? ' <b class="omine">내 기관</b>' : ''}</span><small>${o.r.gu} · ${m === 'both' ? '기관 · ' : ''}${CATL[o.r.cat]}</small>`;
+    b.onmousedown = e => e.preventDefault(); b.onclick = () => pickOpt(o);
     opts.appendChild(b); });
   optSel = -1; opts.hidden = false; q.setAttribute('aria-expanded', 'true');
 }
+function pickOpt(o){ if(o.k === 's') setSchool(o.s); else pickInst(o.r); }
+/* centre on an institution and open its popup */
+function pickInst(r){
+  const k = ikey(r);
+  CATS.forEach(c => S.cats.add(c[0]));
+  S.back = null;
+  setSchool({name: `${r.name} 주변`, gu: r.gu, lv: '', lat: r.lat, lon: r.lon, custom: true, inst: r.name});
+  const t = current.find(x => ikey(x) === k);
+  if(t) select(t, false);
+}
 // open the school list whenever the box is focused, tapped again, typed in or emptied
 function openOpts(){
-  const same = S.school && !S.school.custom && q.value === S.school.name; // the chosen school's name is still in the box: show every school
+  const cur = S.school && (S.school.inst || (!S.school.custom && S.school.name));
+  const same = !!cur && q.value === cur; // the chosen name is still in the box: show everything
   showOpts(true, same); if(same) q.select();
   q.closest('.card').classList.add('searching');
 }
@@ -181,7 +213,7 @@ q.addEventListener('keydown', e => {
   if(e.key === 'ArrowDown' || e.key === 'ArrowUp'){ e.preventDefault(); if(opts.hidden) showOpts(true);
     optSel = Math.max(0, Math.min(items.length-1, optSel + (e.key === 'ArrowDown' ? 1 : -1)));
     items.forEach((it,i) => it.classList.toggle('on', i === optSel)); items[optSel]?.scrollIntoView({block:'nearest'}); q.setAttribute('aria-activedescendant', items[optSel]?.id || ''); }
-  else if(e.key === 'Enter'){ e.preventDefault(); const s = optList[optSel >= 0 ? optSel : 0]; if(s) setSchool(s); }
+  else if(e.key === 'Enter'){ e.preventDefault(); const o = optList[optSel >= 0 ? optSel : 0]; if(o) pickOpt(o); }
   else if(e.key === 'Escape'){ opts.hidden = true; }
 });
 
@@ -197,7 +229,7 @@ $('#legend').innerHTML = CATS.map(([c,l]) => `<span>${icon(c,16)}${l}</span>`).j
 
 function setSchool(s, keepView){
   if(!s.custom) S.back = null;
-  S.school = s; S.sel = null; hideInfo(); q.value = s.custom ? '' : s.name; opts.hidden = true; q.closest('.card').classList.remove('searching'); save(); render(); if(!keepView) fitRadius();
+  S.school = s; S.sel = null; hideInfo(); q.value = s.inst || (s.custom ? '' : s.name); opts.hidden = true; q.closest('.card').classList.remove('searching'); save(); render(); if(!keepView) fitRadius();
 }
 
 /* ---------- render ---------- */
@@ -208,7 +240,7 @@ function render(){
   $('#pickName').textContent = sc.name;
   $('#backBtn').hidden = !(sc.custom && S.back);
   if(S.back) $('#backBtn').textContent = `← ${S.back.name} 기준으로 돌아가기`;
-  $('#pickSub').textContent = sc.home ? `${sc.addr} · 교육지원청` : sc.custom ? `지도에서 고른 지점${sc.gu ? ' · ' + sc.gu : ''}` : `${sc.gu} · ${LV[sc.lv]}` + (sc.ap ? ' · 대략 위치' : '');
+  $('#pickSub').textContent = sc.home ? `${sc.addr} · 교육지원청` : sc.inst ? `${sc.gu} · 기관 위치 기준` : sc.custom ? `지도에서 고른 지점${sc.gu ? ' · ' + sc.gu : ''}` : `${sc.gu} · ${LV[sc.lv]}` + (sc.ap ? ' · 대략 위치' : '');
   const all = D.res.filter(r => !(sc.home && r.name === sc.name)).map(r => ({...r, m: dist(sc, r)})).sort((a,b) => a.m - b.m);
   const inR = all.filter(r => r.m <= S.r);
   catHost.querySelectorAll('.cat').forEach(b => { const c = b.dataset.c; b.setAttribute('aria-pressed', S.cats.has(c));
@@ -532,6 +564,7 @@ async function refreshMe(){
   if(!P2.editing) paintProg();
 }
 function paintLogin(){
+  applySearchMode();
   const btn = $('#loginBtn'), st = $('#whoState'), mine = $('#mineBox'), list = $('#mineList');
   if(!SB_ON){ btn.hidden = true; st.hidden = true; mine.hidden = true; return; }
   if(!P2.email){ btn.hidden = false; st.hidden = true; mine.hidden = true; return; }
@@ -556,7 +589,7 @@ function paintLogin(){
 function openInst(k){
   const r = D.res.find(x => ikey(x) === k); if(!r) return;
   CATS.forEach(c => S.cats.add(c[0]));
-  setSchool({name: `${r.name} 주변`, gu: r.gu, lv: '', lat: r.lat, lon: r.lon, custom: true});
+  setSchool({name: `${r.name} 주변`, gu: r.gu, lv: '', lat: r.lat, lon: r.lon, custom: true, inst: r.name});
   const t = current.find(x => ikey(x) === k);
   if(t){ select(t, false); setTimeout(() => { const e = document.getElementById('pEdit'); if(e) e.click(); }, 350); }
 }
