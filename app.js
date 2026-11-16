@@ -359,6 +359,7 @@ function showInfo(r){
   if(P2.editing && P2.editing !== ikey(r)) P2.editing = null;
   const [, items, when] = SUP.find(([re]) => re.test(r.name + ' ' + r.desc));
   const tel = r.ph && r.ph !== '-' ? r.ph : '';
+  const site = (D.sites || {})[ikey(r)] || '';
   info.style.setProperty('--c', `var(--${r.cat})`);
   info.innerHTML = `<div class="ihead">
     <button class="grab" type="button" aria-label="안내 창 크게 보기"><span></span></button>
@@ -371,7 +372,7 @@ function showInfo(r){
       </div>
       <button class="ix" type="button" aria-label="닫기">✕</button>
     </div>
-    <div class="iact">${tel ? `<a class="call big" href="tel:${tel.replace(/[^0-9]/g,'')}" target="_top" aria-label="${r.name}에 전화 걸기 ${tel}"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z" fill="currentColor"/></svg>${tel}</a><button class="copy" type="button">번호 복사</button>` : '<span class="addr">전화번호 없음</span>'}</div></div><div class="ibody">
+    <div class="iact">${tel ? `<a class="call big" href="tel:${tel.replace(/[^0-9]/g,'')}" target="_top" aria-label="${r.name}에 전화 걸기 ${tel}"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z" fill="currentColor"/></svg>${tel}</a><button class="copy" type="button">번호 복사</button>` : '<span class="addr">전화번호 없음</span>'}${site ? `<a class="copy site" href="${esc(site)}" target="_blank" rel="noopener noreferrer" aria-label="${esc(r.name)} 홈페이지 (새 창)">홈페이지 ↗</a>` : ''}</div></div><div class="ibody">
     <p class="iwhat">${CATINFO[r.cat]}</p>
     <div class="prog" id="prog">${progHTML(r, items)}</div>
     <div class="iwhen"><b>이럴 때 연계해요</b> ${when}</div>
