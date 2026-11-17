@@ -84,7 +84,16 @@ function animTo(t){
     setVB(from.map((f,i)=>f + (t[i]-f)*e)); if(k < 1) anim = requestAnimationFrame(step); };
   anim = requestAnimationFrame(step);
 }
+function fitArea(){
+  if(S.area === '전체') return fitAll();
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  D.res.forEach(r => { if(r.gu !== S.area) return; const [x, y] = P(r.lon, r.lat); x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); });
+  if(!isFinite(x0)) return fitAll();
+  const pad = Math.max(x1 - x0, y1 - y0) * .12 + 30 * unit();
+  animTo([x0 - pad, y0 - pad, x1 - x0 + pad*2, y1 - y0 + pad*2]);
+}
 function fitRadius(){
+  if(S.area) return fitArea();
   if(!S.school) return fitAll();
   const [x, y] = P(S.school.lon, S.school.lat); const ru = S.r / mPerUnit * 1.18;
   animTo([x - ru, y - ru, ru*2, ru*2]);
@@ -185,7 +194,10 @@ q.addEventListener('keydown', e => {
   else if(e.key === 'Escape'){ opts.hidden = true; }
 });
 
-$('#seg').querySelectorAll('button').forEach(b => b.onclick = () => { S.r = +b.dataset.r; save(); render(); fitRadius(); });
+$('#seg').querySelectorAll('button').forEach(b => b.onclick = () => { S.r = +b.dataset.r; S.area = null; save(); render(); fitRadius(); });
+/* 구 전체 보기: every institution in one 구 (or all four), whatever the distance */
+const areaName = a => a === '전체' ? '4개 구' : a;
+$('#areaChips').querySelectorAll('.chip').forEach(b => b.onclick = () => { const a = b.dataset.a; S.area = S.area === a ? null : a; S.sel = null; hideInfo(); render(); if(S.area) fitArea(); else fitRadius(); });
 
 const catHost = $('#cats');
 const icon = (cat, size=26) => `<svg class="ic" width="${size}" height="${size}" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="15" fill="var(--${cat})"/><use href="#g-${cat}" x="0" y="0" width="32" height="32"/></svg>`;
@@ -197,6 +209,7 @@ $('#legend').innerHTML = CATS.map(([c,l]) => `<span>${icon(c,16)}${l}</span>`).j
 
 function setSchool(s, keepView){
   if(!s.custom) S.back = null;
+  S.area = null;
   S.school = s; S.sel = null; hideInfo(); q.value = s.custom ? '' : s.name; opts.hidden = true; q.closest('.card').classList.remove('searching'); save(); render(); if(!keepView) fitRadius();
 }
 
@@ -204,22 +217,25 @@ function setSchool(s, keepView){
 let current = [];
 function render(){
   const sc = S.school;
-  $('#seg').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', +b.dataset.r === S.r));
+  $('#seg').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', !S.area && +b.dataset.r === S.r));
+  $('#areaChips').querySelectorAll('.chip').forEach(b => b.setAttribute('aria-pressed', b.dataset.a === S.area));
   $('#pickName').textContent = sc.name;
   $('#backBtn').hidden = !(sc.custom && S.back);
   if(S.back) $('#backBtn').textContent = `← ${S.back.name} 기준으로 돌아가기`;
   $('#pickSub').textContent = sc.home ? `${sc.addr} · 교육지원청` : sc.inst ? `${sc.gu} · 기관 위치 기준` : sc.custom ? `지도에서 고른 지점${sc.gu ? ' · ' + sc.gu : ''}` : `${sc.gu} · ${LV[sc.lv]}` + (sc.ap ? ' · 대략 위치' : '');
   const all = D.res.filter(r => !(sc.home && r.name === sc.name)).map(r => ({...r, m: dist(sc, r)})).sort((a,b) => a.m - b.m);
-  const inR = all.filter(r => r.m <= S.r);
+  const inR = S.area ? all.filter(r => S.area === '전체' || r.gu === S.area) : all.filter(r => r.m <= S.r);
   catHost.querySelectorAll('.cat').forEach(b => { const c = b.dataset.c; b.setAttribute('aria-pressed', S.cats.has(c));
     b.querySelector('.n').textContent = inR.filter(r => r.cat === c).length; });
   current = inR.filter(r => S.cats.has(r.cat));
-  $('#sumText').innerHTML = `<em class="snm">${sc.name}</em> <span class="srest">반경 ${fmtD(S.r)} 안에 기관 <em>${current.length}곳</em></span>`;
+  $('#sumText').innerHTML = S.area ? `<em class="snm">${areaName(S.area)} 전체</em> <span class="srest">기관 <em>${current.length}곳</em></span>`
+    : `<em class="snm">${sc.name}</em> <span class="srest">반경 ${fmtD(S.r)} 안에 기관 <em>${current.length}곳</em></span>`;
 
   const list = $('#list'); list.innerHTML = '';
   if(!current.length){
     const near = all.filter(r => S.cats.has(r.cat))[0];
-    list.innerHTML = `<div class="empty">이 범위 안에는 기관이 없어요.${near ? `<br>가장 가까운 곳은 <b>${near.name}</b> (${fmtD(near.m)})이에요. 범위를 넓혀 보세요.` : ''}</div>`;
+    if(S.area) list.innerHTML = '<div class="empty">고른 분류의 기관이 없어요. 분류를 더 골라 보세요.</div>';
+    else list.innerHTML = `<div class="empty">이 범위 안에는 기관이 없어요.${near ? `<br>가장 가까운 곳은 <b>${near.name}</b> (${fmtD(near.m)})이에요. 범위를 넓혀 보세요.` : ''}</div>`;
   }
   current.forEach(r => {
     const b = document.createElement('div'); b.className = 'item' + (isSel(r) ? ' on' : ''); b.tabIndex = 0; b.dataset.key = r.gu + r.no;
@@ -244,12 +260,14 @@ const isSel = r => S.sel && keyOf(r) === S.sel;
 function drawMap(){
   const sc = S.school; const [sx, sy] = P(sc.lon, sc.lat);
   gRing.innerHTML = ''; gPins.innerHTML = ''; gSchool.innerHTML = ''; MK = null;
+  if(!S.area){
   const ru = S.r / mPerUnit;
   el('circle', {cx:sx, cy:sy, r:ru, fill:'url(#ringG)'}, gRing);
   el('circle', {cx:sx, cy:sy, r:ru, fill:'none', stroke:'var(--accent)', 'data-sw':2, 'data-dash':'8 6'}, gRing);
   if(S.r > 500){ for(let m = 500; m < S.r; m += (S.r > 2000 ? 1000 : 500)){ el('circle', {cx:sx, cy:sy, r:m/mPerUnit, fill:'none', stroke:'var(--accent)', 'stroke-opacity':.4, 'data-sw':1}, gRing);
     const t = el('text', {x:sx, y:sy - m/mPerUnit, dy:'-.35em', 'text-anchor':'middle', fill:'var(--accent)', stroke:'var(--land)', 'paint-order':'stroke', 'font-weight':700}, gRing); t.textContent = fmtD(m); } }
   const t = el('text', {x:sx, y:sy - ru, dy:'-.35em', 'text-anchor':'middle', fill:'var(--accent)', stroke:'var(--land)', 'paint-order':'stroke', 'font-weight':700}, gRing); t.textContent = fmtD(S.r);
+  }
   const sel = current.find(isSel);
   if(sel){ // school → selected link
     const [x, y] = P(sel.lon, sel.lat);
@@ -661,7 +679,7 @@ function copy(text, msg){
 }
 $('#copyAll').onclick = () => {
   const sc = S.school;
-  const lines = [`[${sc.name}] 반경 ${fmtD(S.r)} 안 도움 기관 ${current.length}곳 (직선거리 순)`];
+  const lines = [S.area ? `[${areaName(S.area)} 전체] 도움 기관 ${current.length}곳 (${sc.name}에서 직선거리 순)` : `[${sc.name}] 반경 ${fmtD(S.r)} 안 도움 기관 ${current.length}곳 (직선거리 순)`];
   current.forEach((r, i) => lines.push(`${i+1}. ${r.name} (${CATL[r.cat]}) ${fmtD(r.m)} · ${r.ph || '-'} · ${r.addr}`));
   lines.push('출처: 2026 학생맞춤통합지원 복지 서비스별 자원 목록(부산서부교육지원청)');
   copy(lines.join('\n'), `${current.length}곳 목록을 복사했어요`);
