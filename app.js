@@ -119,7 +119,7 @@ function scaleMarks(){
 }
 function zoom(f){ const [x,y,w,h] = vb; const cx = x+w/2, cy = y+h/2; animTo([cx - w*f/2, cy - h*f/2, w*f, h*f]); }
 $('#zIn').onclick = () => zoom(.6); $('#zOut').onclick = () => zoom(1.6);
-$('#fitBtn').onclick = fitRadius; $('#allBtn').onclick = fitAll;
+$('#fitBtn').onclick = fitRadius;
 
 /* drag to pan */
 let drag = null;
@@ -205,7 +205,7 @@ CATS.forEach(([c, l]) => { const b = document.createElement('button'); b.type = 
   b.innerHTML = `${icon(c, 22)}<span>${l}</span><span class="n"></span>`;
   b.onclick = () => { const only = S.cats.size === 1 && S.cats.has(c); S.cats = new Set(only ? CATS.map(x => x[0]) : [c]); render(); }; catHost.appendChild(b); });
 $('#allCats').onclick = () => { CATS.forEach(c => S.cats.add(c[0])); render(); };
-$('#legend').innerHTML = CATS.map(([c,l]) => `<span>${icon(c,16)}${l}</span>`).join('') + `<span><svg width="16" height="16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="none" stroke="var(--muted)" stroke-width="1.6" stroke-dasharray="2.5 2"/></svg>대략 위치</span>`;
+$('#legend').innerHTML = CATS.map(([c,l]) => `<span>${icon(c,16)}${l}</span>`).join('') + `<span><svg width="16" height="16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="none" stroke="var(--muted)" stroke-width="1.6" stroke-dasharray="2.5 2"/></svg>대략 위치</span><span class="lhint">지도를 누르면 그 지점 주변을, 핀을 누르면 기관 안내를 보여 줘요</span>`;
 
 function setSchool(s, keepView){
   if(!s.custom) S.back = null;
