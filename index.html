@@ -86,6 +86,14 @@ header p{margin:6px 0 0;color:var(--muted);font-size:14px;max-width:62ch}
 @media (max-width:900px){.areabar{flex:1 1 100%}.areabar .chips{display:grid;grid-template-columns:repeat(5,1fr);flex:1}.areabar .chip{justify-content:center;padding:5px 0}.mapbtns{margin-left:auto}html.mapmode .areabar{display:none}.legend .lhint{margin-left:0}}
 @media (max-width:400px){.areabar .albl{display:none}}
 .cats{display:flex;flex-wrap:wrap;gap:6px}
+.cattog{font:inherit;color:inherit;letter-spacing:inherit;background:none;border:0;padding:2px 4px 2px 0;margin:-2px 0;cursor:pointer;display:inline-flex;align-items:center;gap:5px;border-radius:6px;min-width:0}
+.cattog .chev{flex:none;transition:transform .15s}
+.cattog[aria-expanded="false"] .chev{transform:rotate(-90deg)}
+.cattog .ctip,.cattog .csum{font-weight:500;letter-spacing:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cattog .csum{color:var(--accent);font-weight:600}
+.cattog[aria-expanded="false"] .ctip{display:none}
+.cattog:hover{color:var(--ink)}
+.lbl:has(> .cattog[aria-expanded="false"]){margin-bottom:0}
 .cat{font:inherit;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px;padding:4px 10px 4px 4px;border-radius:999px;border:1.5px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer}
 .cat .n{font-variant-numeric:tabular-nums;color:var(--muted);font-weight:500}
 .cat[aria-pressed="false"]{opacity:.45}
@@ -437,7 +445,7 @@ footer{display:flex;flex-direction:column;gap:8px;font-size:12.5px;color:var(--m
           <button type="button" data-r="1000" aria-pressed="true">1km</button>
           <button type="button" data-r="2000" aria-pressed="false">2km</button>
         </div>
-        <div class="lbl" style="margin-top:14px"><span>분류 <span style="font-weight:500;letter-spacing:0">· 누르면 그 분류만 보여요</span></span><button class="linkbtn" id="allCats" type="button">전체 보기</button></div>
+        <div class="lbl" style="margin-top:14px"><button class="cattog" id="catTog" type="button" aria-expanded="true" aria-controls="cats"><svg class="chev" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>분류<span class="ctip">· 누르면 그 분류만 보여요</span><span class="csum" id="catSum" hidden></span></button><button class="linkbtn" id="allCats" type="button">전체 보기</button></div>
         <div class="cats" id="cats"></div>
       </section>
 
@@ -494,8 +502,8 @@ footer{display:flex;flex-direction:column;gap:8px;font-size:12.5px;color:var(--m
     <p class="lgnote">담당자 확인을 위해 이메일 주소만 사용하고, 담당 기간 동안 보관해요. 정원·참여 수 말고 학생 개인정보는 입력하지 마세요.</p>
   </section>
 </div>
-<script src="config.js?v=b1a9e99e"></script>
-<script src="data/app-data.js?v=b1a9e99e"></script>
-<script src="app.js?v=b1a9e99e"></script>
+<script src="config.js?v=65a5bcdc"></script>
+<script src="data/app-data.js?v=65a5bcdc"></script>
+<script src="app.js?v=65a5bcdc"></script>
 </body>
 </html>

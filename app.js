@@ -205,6 +205,11 @@ CATS.forEach(([c, l]) => { const b = document.createElement('button'); b.type = 
   b.innerHTML = `${icon(c, 22)}<span>${l}</span><span class="n"></span>`;
   b.onclick = () => { const only = S.cats.size === 1 && S.cats.has(c); S.cats = new Set(only ? CATS.map(x => x[0]) : [c]); render(); }; catHost.appendChild(b); });
 $('#allCats').onclick = () => { CATS.forEach(c => S.cats.add(c[0])); render(); };
+/* the 분류 box folds up so the list gets the room; open by default */
+const catTog = $('#catTog');
+function paintCatSum(){ const open = catTog.getAttribute('aria-expanded') === 'true', n = S.cats.size, sum = $('#catSum');
+  catHost.hidden = !open; sum.hidden = open; sum.textContent = n === CATS.length ? '· 모든 분류' : `· ${n}개 분류만 보는 중`; }
+catTog.onclick = () => { catTog.setAttribute('aria-expanded', catTog.getAttribute('aria-expanded') !== 'true'); paintCatSum(); };
 $('#legend').innerHTML = CATS.map(([c,l]) => `<span>${icon(c,16)}${l}</span>`).join('') + `<span><svg width="16" height="16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="none" stroke="var(--muted)" stroke-width="1.6" stroke-dasharray="2.5 2"/></svg>대략 위치</span><span class="lhint">지도를 누르면 그 지점 주변을, 핀을 누르면 기관 안내를 보여 줘요</span>`;
 
 function setSchool(s, keepView){
@@ -228,6 +233,7 @@ function render(){
   catHost.querySelectorAll('.cat').forEach(b => { const c = b.dataset.c; b.setAttribute('aria-pressed', S.cats.has(c));
     b.querySelector('.n').textContent = inR.filter(r => r.cat === c).length; });
   current = inR.filter(r => S.cats.has(r.cat));
+  paintCatSum();
   $('#sumText').innerHTML = S.area ? `<em class="snm">${areaName(S.area)} 전체</em> <span class="srest">기관 <em>${current.length}곳</em></span>`
     : `<em class="snm">${sc.name}</em> <span class="srest">반경 ${fmtD(S.r)} 안에 기관 <em>${current.length}곳</em></span>`;
 
