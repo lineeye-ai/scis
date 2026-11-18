@@ -548,7 +548,7 @@ async function refreshMe(){
   P2.email = (session && session.user && session.user.email || '').toLowerCase();
   P2.assigned = new Set(); P2.isAdmin = false;
   if(P2.email){
-    const [st, ad] = await Promise.all([P2.sb.from('staff').select('inst_key'), P2.sb.rpc('is_admin')]);
+    const [st, ad] = await Promise.all([P2.sb.from('staff').select('inst_key').eq('email', P2.email), P2.sb.rpc('is_admin')]);
     (st.data || []).forEach(x => P2.assigned.add(x.inst_key));
     P2.isAdmin = ad.data === true;
   }
