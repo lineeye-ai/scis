@@ -380,6 +380,7 @@ const SUP = [
 ];
 const info = $('#info');
 function showInfo(r){
+  const fresh = info.hidden || !P2.shown || ikey(P2.shown) !== ikey(r); // only a new popup floats up, not a refresh
   if(P2.editing && P2.editing !== ikey(r)) P2.editing = null;
   const [, items, when] = SUP.find(([re]) => re.test(r.name + ' ' + r.desc));
   const tel = r.ph && r.ph !== '-' ? r.ph : '';
@@ -402,7 +403,8 @@ function showInfo(r){
     <div class="iwhen"><b>이럴 때 연계해요</b> ${when}</div>
     <div class="iaddr">${r.addr}${r.ap ? ' <span class="tag">대략 위치</span>' : ''}</div>
     </div>`;
-  info.classList.toggle('full', P2.editing === ikey(r)); info.hidden = false; P2.shown = r; P2.items = items; bindProg(); bindSheet();
+  info.classList.toggle('full', P2.editing === ikey(r)); info.hidden = false;
+  if(fresh){ info.classList.remove('rise'); void info.offsetWidth; info.classList.add('rise'); } P2.shown = r; P2.items = items; bindProg(); bindSheet();
   info.querySelector('.ix').onclick = () => { S.sel = null; hideInfo(); document.querySelectorAll('.item.on').forEach(i => i.classList.remove('on')); drawMap(); };
   const cp = info.querySelector('.copy'); if(cp) cp.onclick = () => copy(tel, `${tel} 복사했어요`);
 }
