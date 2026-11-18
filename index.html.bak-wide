@@ -1,0 +1,509 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; base-uri 'self'; form-action 'self'">
+<meta name="description" content="학교를 고르면 부산 서구·중구·영도구·사하구의 학생맞춤통합지원 기관을 가까운 순서로 보여 주는 지도">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%230F6E8C'/%3E%3Cpath d='M16 7c-4 0-7 3-7 7 0 5 7 11 7 11s7-6 7-11c0-4-3-7-7-7z' fill='%23fff'/%3E%3Ccircle cx='16' cy='14' r='2.6' fill='%230F6E8C'/%3E%3C/svg%3E">
+<title>학교 주변 도움 기관 찾기</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Do+Hyeon&display=swap&text=0123456789%EA%B4%80%EA%B5%90%EA%B5%AC%EA%B7%B8%EA%B8%B0%EB%8B%B4%EB%8B%B9%EB%8F%84%EB%A1%9C%EB%B3%80%EC%82%AC%EC%84%9C%EC%98%81%EC%9B%80%EC%9D%B8%EC%9E%90%EC%A3%BC%EC%A4%91%EC%B0%BE%ED%95%98%ED%95%99">
+<style>
+/* Layout: tool bar on top, left = picker + results, right = sticky harbour-blue map; stacks map-first on phones */
+:root{
+  --bg:#F3F6F7; --panel:#FFFFFF; --ink:#18252B; --muted:#5B6B73; --line:#DCE4E7;
+  --accent:#0F6E8C; --accent-ink:#FFFFFF; --accent-soft:#E2F0F5; --focus:#F2A43A;
+  --sea:#A9D3E8; --sea-deep:#86BDDA; --land:#FFFFFF; --nb:#ECEAE3; --nb-line:#D3CEC2; --dong:#C9BFA8; --coast:#7FA9BF; --shade:#1E4A60;
+  --seo:#E35D4F; --yd:#2E7FC0; --saha:#2C8A5A; --jg:#7556BE;
+  --wel:#C85E14; --care:#B8336F; --mind:#7A4DC4; --safe:#C42F25; --shelter:#7A5C43; --med:#0F8576; --youth:#3F8524; --edu:#2468BF;
+  --shadow:0 1px 2px rgba(16,40,50,.06),0 4px 14px rgba(16,40,50,.06); --ok:#1E8A4C; --warn:#C27406; --bad:#C8352B;
+  --f-display:'Do Hyeon',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  --f-body:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F171B; --panel:#162228; --ink:#E7EEF1; --muted:#97A8B0; --line:#2A3A42;
+  --accent:#5CB8D6; --accent-ink:#0B1A20; --accent-soft:#183540; --focus:#F2A43A;
+  --sea:#123445; --sea-deep:#0C2633; --land:#22313A; --nb:#18232A; --nb-line:#2B3A42; --dong:#45565F; --coast:#3D6B82; --shade:#000000;
+  --seo:#F07A6D; --yd:#5AA6E0; --saha:#4FB383; --jg:#9B82E0;
+  --wel:#EA8A45; --care:#E0679C; --mind:#A385E8; --safe:#EE6A60; --shelter:#B5937A; --med:#3DBBA9; --youth:#74B957; --edu:#5B9BE8;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 14px rgba(0,0,0,.25); --ok:#5BCB8A; --warn:#F2AE45; --bad:#F27A70; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F171B; --panel:#162228; --ink:#E7EEF1; --muted:#97A8B0; --line:#2A3A42;
+  --accent:#5CB8D6; --accent-ink:#0B1A20; --accent-soft:#183540; --focus:#F2A43A;
+  --sea:#123445; --sea-deep:#0C2633; --land:#22313A; --nb:#18232A; --nb-line:#2B3A42; --dong:#45565F; --coast:#3D6B82; --shade:#000000;
+  --seo:#F07A6D; --yd:#5AA6E0; --saha:#4FB383; --jg:#9B82E0;
+  --wel:#EA8A45; --care:#E0679C; --mind:#A385E8; --safe:#EE6A60; --shelter:#B5937A; --med:#3DBBA9; --youth:#74B957; --edu:#5B9BE8;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 14px rgba(0,0,0,.25); --ok:#5BCB8A; --warn:#F2AE45; --bad:#F27A70; color-scheme:dark}
+html,body{margin:0}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{background:var(--bg);color:var(--ink)}
+body{font-family:var(--f-body);font-size:15px;line-height:1.5}
+.wrap{max-width:1360px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 32px;display:flex;flex-direction:column;gap:16px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:8px 24px}
+header .kick{font-size:12.5px;font-weight:600;letter-spacing:.06em;color:var(--accent)}
+h1{font-family:var(--f-display);font-weight:400;font-size:clamp(28px,4vw,40px);line-height:1.1;margin:2px 0 0;text-wrap:balance}
+header p{margin:6px 0 0;color:var(--muted);font-size:14px;max-width:62ch}
+.stats{display:flex;gap:18px;font-size:13px;color:var(--muted)}
+.stats b{display:block;font-family:var(--f-display);font-weight:400;font-size:26px;color:var(--ink);line-height:1.1;font-variant-numeric:tabular-nums}
+
+.grid{display:grid;grid-template-columns:minmax(340px,440px) minmax(0,1fr);gap:16px;align-items:start}
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow)}
+.lbl{font-size:12.5px;font-weight:700;color:var(--muted);letter-spacing:.04em;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+
+/* school picker */
+.combo{position:relative}
+.qbox{position:relative}
+.combo input{width:100%;font:inherit;font-size:16px;padding:11px 14px 11px 40px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
+.combo input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.combo svg.s{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--muted)}
+.opts{position:absolute;z-index:20;left:0;right:0;top:calc(100% + 4px);background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);max-height:300px;overflow:auto;padding:4px}
+.opt{display:flex;justify-content:space-between;gap:10px;width:100%;text-align:left;font:inherit;padding:8px 10px;border:0;background:none;color:var(--ink);border-radius:7px;cursor:pointer}
+.opt:hover,.opt.on{background:var(--accent-soft)}
+.opt small{color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font:inherit;font-size:13px;font-weight:600;padding:5px 11px;border-radius:999px;border:1.5px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.chip:focus-visible,.opt:focus-visible,button:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}
+.pick{display:flex;align-items:center;gap:10px;margin-top:12px;padding:10px 12px;border-radius:10px;background:var(--accent-soft)}
+.pick .nm{font-weight:700;font-size:16px}
+.pick .sub{font-size:12.5px;color:var(--muted)}
+.linkbtn{font:inherit;font-size:13px;font-weight:600;border:0;background:none;color:var(--accent);cursor:pointer;padding:2px 0;text-decoration:underline;text-underline-offset:3px}
+
+.seg{display:grid;grid-template-columns:repeat(3,1fr);border:1.5px solid var(--line);border-radius:10px;overflow:hidden}
+.seg button{font:inherit;font-weight:600;font-size:14px;padding:8px 0;border:0;border-right:1.5px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer;font-variant-numeric:tabular-nums}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.areabar{display:flex;align-items:center;gap:8px;min-width:0}
+.areabar .albl{font-size:12.5px;font-weight:700;color:var(--muted);white-space:nowrap}
+.areabar .chips{gap:5px;flex-wrap:nowrap}
+.areabar .chip{font-size:12.5px;padding:4px 9px;flex:none}
+.legend .lhint{margin-left:auto}
+@media (max-width:900px){.areabar{flex:1 1 100%}.areabar .chips{display:grid;grid-template-columns:repeat(5,1fr);flex:1}.areabar .chip{justify-content:center;padding:5px 0}.mapbtns{margin-left:auto}html.mapmode .areabar{display:none}.legend .lhint{margin-left:0}}
+@media (max-width:400px){.areabar .albl{display:none}}
+.cats{display:flex;flex-wrap:wrap;gap:6px}
+.cattog{font:inherit;color:inherit;letter-spacing:inherit;background:none;border:0;padding:2px 4px 2px 0;margin:-2px 0;cursor:pointer;display:inline-flex;align-items:center;gap:5px;border-radius:6px;min-width:0}
+.cattog .chev{flex:none;transition:transform .15s}
+.cattog[aria-expanded="false"] .chev{transform:rotate(-90deg)}
+.cattog .ctip,.cattog .csum{font-weight:500;letter-spacing:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cattog .csum{color:var(--accent);font-weight:600}
+.cattog[aria-expanded="false"] .ctip{display:none}
+.cattog:hover{color:var(--ink)}
+.lbl:has(> .cattog[aria-expanded="false"]){margin-bottom:0}
+.cat{font:inherit;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px;padding:4px 10px 4px 4px;border-radius:999px;border:1.5px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer}
+.cat .n{font-variant-numeric:tabular-nums;color:var(--muted);font-weight:500}
+.cat[aria-pressed="false"]{opacity:.45}
+.cat[aria-pressed="false"] .ic{filter:grayscale(1)}
+
+/* results */
+.sum{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.sum h2{margin:0;font-size:17px;line-height:1.35;text-wrap:balance}
+.sum h2 em{font-style:normal;color:var(--accent)}
+.list{display:flex;flex-direction:column;gap:8px;max-height:calc(100vh - 120px);overflow:auto;padding-right:2px}
+.item{content-visibility:auto;contain-intrinsic-size:auto 96px;display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:4px 10px;padding:11px 12px;border-radius:12px;border:1.5px solid var(--line);background:var(--panel);cursor:pointer;text-align:left;font:inherit;color:inherit;width:100%}
+.item:hover{border-color:var(--accent)}
+.item.on{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.item .ic{grid-row:span 2;margin-top:2px}
+.item .t{font-weight:700;font-size:15.5px;line-height:1.35;min-width:0}
+.item .d{font-size:13px;color:var(--muted);min-width:0}
+.item .dist{text-align:right;font-variant-numeric:tabular-nums;font-weight:700;font-size:15px;white-space:nowrap}
+.item .dist small{display:block;font-weight:500;font-size:12px;color:var(--muted)}
+.item .meta{grid-column:2 / 4;display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center;font-size:13px}
+.ph{font-weight:700;font-variant-numeric:tabular-nums}
+.call{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:var(--accent);color:var(--accent-ink);text-decoration:none;font-size:14px;min-height:34px}
+.call:hover{filter:brightness(1.08)}
+.call:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.copy{font:inherit;font-size:12px;font-weight:600;border:1px solid var(--line);background:var(--bg);color:var(--muted);border-radius:6px;padding:1px 7px;cursor:pointer}
+.copy.site{display:inline-flex;align-items:center;text-decoration:none;color:var(--accent);border-color:var(--accent)}
+.addr{color:var(--muted)}
+.tag{font-size:11.5px;font-weight:700;padding:1px 7px;border-radius:999px;border:1.5px solid currentColor}
+.gu{font-size:11.5px;font-weight:700;padding:1px 7px;border-radius:5px;color:#fff;margin-left:4px;vertical-align:2px;white-space:nowrap}
+.empty{padding:22px 14px;text-align:center;color:var(--muted);border:1.5px dashed var(--line);border-radius:12px}
+
+/* map */
+.mapcard{position:sticky;top:max(12px,env(safe-area-inset-top,0px));padding:0;overflow:hidden}
+.maphead{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.maphead .hint{font-size:13px;color:var(--muted)}
+.mapbtns{display:flex;gap:6px}
+.mbtn{font:inherit;font-size:13px;font-weight:600;padding:5px 10px;border-radius:8px;border:1.5px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer}
+.mbtn[aria-pressed="true"]{background:var(--focus);border-color:var(--focus);color:#2A1B05}
+#map{display:block;cursor:crosshair;width:100%;aspect-ratio:16/9;height:auto;min-height:0;background:linear-gradient(var(--sea),var(--sea-deep));touch-action:manipulation}
+#map .pin, #map .sch{cursor:pointer}
+.legend{display:flex;flex-wrap:wrap;gap:4px 12px;padding:8px 14px;border-top:1px solid var(--line);font-size:12px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.pin{cursor:pointer}
+.pin .lab{font-family:var(--f-body);font-weight:700;paint-order:stroke;stroke:var(--land);stroke-linejoin:round;fill:var(--ink)}
+
+footer{display:flex;flex-direction:column;gap:8px;font-size:12.5px;color:var(--muted)}
+.hot{display:flex;flex-wrap:wrap;gap:6px}
+.hot span{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:3px 10px;color:var(--ink)}
+.hot b{font-variant-numeric:tabular-nums}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:8px;font-size:13.5px;font-weight:600;z-index:50}
+
+
+.prog{display:flex;flex-direction:column;gap:8px}
+.prog .ih{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.pedit{flex:none;white-space:nowrap;font:inherit;font-size:12px;font-weight:700;border:1.5px solid var(--c);color:var(--c);background:var(--panel);border-radius:999px;padding:2px 10px;cursor:pointer}
+.prow{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap}
+.pname{min-width:0;flex:1}
+.prog .who{white-space:nowrap}
+.seat{display:inline-flex;gap:6px;align-items:center;font-size:12px;font-variant-numeric:tabular-nums;border-radius:8px;padding:2px 8px;background:var(--bg);color:var(--muted);white-space:nowrap}
+.seat b{color:var(--ink)}
+.seat.ok b,.seat.few b{color:var(--ok)} .seat.full b{color:var(--bad)}
+.seat.solo b{color:var(--warn)}
+.led{display:inline-block;flex:none;width:10px;height:10px;border-radius:50%;margin-left:1px}
+.led.g{background:radial-gradient(circle at 35% 30%,#B9F5CF 0 18%,#22C55E 55%,#15803D);box-shadow:0 0 0 1px rgba(21,128,61,.35),0 0 6px 1px rgba(34,197,94,.55)}
+.led.r{background:radial-gradient(circle at 35% 30%,#FFD0CC 0 18%,#EF4444 55%,#B91C1C);box-shadow:0 0 0 1px rgba(185,28,28,.35),0 0 6px 1px rgba(239,68,68,.55)}
+.led.y{background:radial-gradient(circle at 35% 30%,#FFF4C2 0 18%,#FACC15 55%,#CA8A04);box-shadow:0 0 0 1px rgba(202,138,4,.4),0 0 6px 1px rgba(250,204,21,.6)}
+.seat.none{font-style:normal;opacity:.8}
+.avail{display:block;margin-top:3px;font-size:11.5px;font-weight:700;border-radius:999px;padding:1px 7px;white-space:nowrap}
+.avail.ok{color:var(--ok);background:color-mix(in srgb,var(--ok) 12%,transparent)}
+.avail.few{color:var(--warn);background:color-mix(in srgb,var(--warn) 14%,transparent)}
+.avail.full{color:var(--bad);background:color-mix(in srgb,var(--bad) 12%,transparent)}
+.pstate{font-size:12.5px;color:var(--muted);background:var(--bg);border-radius:8px;padding:6px 9px}
+.elist{display:flex;flex-direction:column;gap:8px}
+.erow{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;gap:6px;align-items:center;padding:8px;border:1px solid var(--line);border-radius:10px}
+.erow input{font:inherit;font-size:14px;padding:6px 8px;border:1.5px solid var(--line);border-radius:7px;background:var(--bg);color:var(--ink);min-width:0}
+.erow label{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--muted)}
+.erow .et,.erow .ec{width:58px}
+.erow .ed{grid-column:1 / -1;font-size:13px}
+.edel{font:inherit;font-size:12px;border:1px solid var(--line);background:var(--panel);color:var(--bad);border-radius:7px;padding:5px 8px;cursor:pointer}
+.emsg{font-size:13px;color:var(--bad)}
+#pSave[disabled]{opacity:.6}
+@media (max-width:480px){.erow{grid-template-columns:1fr 1fr auto}.erow .en{grid-column:1 / -1}}
+
+.upd{display:flex;flex-direction:column;gap:10px}
+.updrow{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.updsub{font-size:13px;color:var(--muted)}
+.updask{font-size:13.5px;background:var(--bg);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.updmsg{font-size:13.5px;border-radius:10px;padding:9px 12px;background:var(--accent-soft)}
+.updmsg.bad{background:color-mix(in srgb,var(--bad) 12%,transparent);color:var(--bad)}
+#updBtn[disabled],#updGo[disabled]{opacity:.6}
+
+.mapwrap{position:relative;overflow:hidden}
+.halo{position:absolute;left:0;top:0;width:70px;height:70px;margin:-35px 0 0 -35px;border-radius:50%;background:var(--c);pointer-events:none;z-index:1;opacity:0;animation:halo 1.6s ease-out 3}
+@keyframes halo{from{transform:scale(.17);opacity:.5}to{transform:scale(1);opacity:0}}
+.info{position:absolute;left:12px;bottom:12px;width:min(360px,calc(100% - 24px));max-height:calc(100% - 24px);overflow:auto;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-top:5px solid var(--c);border-radius:14px;box-shadow:0 10px 30px rgba(10,30,40,.22);padding:14px 16px 16px;display:flex;flex-direction:column;gap:10px;z-index:5}
+.info .ib{display:flex;gap:10px;align-items:flex-start}
+.info h3{margin:2px 0 0;font-size:19px;line-height:1.3;text-wrap:balance}
+.ic-cat{font-size:12.5px;font-weight:700;color:var(--c)}
+.idist{font-size:13px;color:var(--muted);margin-top:2px;font-variant-numeric:tabular-nums}
+.idist b{color:var(--ink)}
+.ix{flex:none;font:inherit;font-size:14px;width:32px;height:32px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--muted);cursor:pointer}
+.iwhat{margin:0;font-size:13.5px;color:var(--muted)}
+.ih{font-size:13px;font-weight:700;color:var(--c)}
+.iul{margin:-4px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:7px;font-size:14px}
+.iul li::marker{color:var(--c)}
+.iul b{font-weight:700}
+.who{display:inline-block;margin-left:6px;font-size:11px;font-weight:700;color:var(--c);border:1.3px solid var(--c);border-radius:999px;padding:0 6px;vertical-align:1px}
+.pd{font-size:13px;color:var(--muted)}
+.inote{font-size:12px;color:var(--muted);margin-top:-4px}
+.inote a{color:var(--c);font-weight:700}
+.iinfo{font-size:13px;border:1px solid var(--line);border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:3px}
+.iinfo b{font-size:12px;color:var(--muted)}
+.iinfo span{display:inline-block;min-width:62px;font-weight:700;margin-right:6px}
+.iwhen{font-size:13.5px;background:var(--bg);border-radius:8px;padding:8px 10px}
+.iwhen b{display:block;font-size:12px;color:var(--muted);margin-bottom:1px}
+.iaddr{font-size:13px;color:var(--muted)}
+.iact{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.call.big{font-size:15px;padding:9px 16px;font-weight:700}
+.ihead,.ibody{display:contents}
+.grab{display:none}
+.info .iact{order:9}
+.info{word-break:keep-all;overflow-wrap:anywhere}
+/* phones: bottom sheet — name, distance and call button stay on top, details scroll underneath */
+@media (max-width:900px){
+  .info{position:fixed;left:0;right:0;bottom:0;width:auto;max-height:52vh;max-height:min(52vh,52dvh);padding:0;gap:0;overflow:hidden;border-radius:18px 18px 0 0;border-left:0;border-right:0;border-bottom:0;box-shadow:0 -8px 28px rgba(10,30,40,.2);z-index:40;transition:max-height .22s ease}
+  .info.full{max-height:88vh;max-height:min(88vh,88dvh)}
+  @media (max-height:700px){.info{max-height:58vh;max-height:min(58vh,58dvh)}.info.full{max-height:92vh;max-height:min(92vh,92dvh)}}
+  /* map mode: while a sheet is open the map is pinned to the top of the screen, filling everything above the sheet */
+  html.mapmode, html.mapmode body{overflow:hidden}
+  html.mapmode .mapcard{position:fixed;top:0;left:0;right:0;bottom:var(--sheet-h,50%);z-index:39;margin:0;border:0;border-radius:0;box-shadow:none;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px)}
+  html.mapmode .maphead{padding:6px 10px}
+  html.mapmode .maphead .hint, html.mapmode .legend{display:none}
+  html.mapmode .mapbtns{margin-left:auto}
+  html.mapmode .mapwrap{flex:1;min-height:0}
+  html.mapmode #map{height:100%;min-height:0;touch-action:none}
+  html.mapmode .info{transition:none}
+  .ihead{display:flex;flex-direction:column;gap:10px;flex:none;padding:0 max(16px,env(safe-area-inset-right,0px)) 12px max(16px,env(safe-area-inset-left,0px));border-bottom:1px solid var(--line);touch-action:none}
+  .ibody{display:flex;flex-direction:column;gap:12px;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:12px max(16px,env(safe-area-inset-right,0px)) calc(18px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+  .grab{display:flex;align-items:center;justify-content:center;width:100%;height:22px;margin-bottom:-4px;border:0;background:none;padding:0;cursor:pointer}
+  .grab span{width:42px;height:5px;border-radius:3px;background:var(--line)}
+  .info .iact{order:0;flex-wrap:nowrap}
+  .info .iact .call.big{flex:1;justify-content:center;min-height:44px}
+  .info .iact .copy{min-height:44px;padding:0 12px;flex:none}
+  .info h3{font-size:18px;margin-top:0}
+  .info .ib{gap:10px}
+  .info .ib > .ic{width:30px;height:30px}
+  .info .idist{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .info .ic-cat{line-height:1.3}
+  .info .ix{width:36px;height:36px}
+}
+@media (max-width:900px){
+  .grid{grid-template-columns:minmax(0,1fr)}
+  .side{display:contents}
+  .side > :nth-child(1){order:1}
+  .mapcard{position:relative;top:0;order:2}
+  .side > :nth-child(2){order:3}
+  .side > :nth-child(3){order:4}
+  .side > :nth-child(4){order:5}
+  .listpane{display:contents}
+  .listpane > .sumcard{order:4}
+  .listpane > .list{order:5}
+  .listpane > footer{order:6}
+  #map{height:56vh;min-height:300px}
+  .list{max-height:none;overflow:visible}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+.whobox{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.whost{font-size:12.5px;color:var(--muted);text-align:right;display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.whost b{color:var(--ink)}
+.lgwrap{position:fixed;inset:0;background:rgba(10,25,32,.45);display:flex;align-items:center;justify-content:center;z-index:60;padding:16px}
+.lg{background:var(--panel);color:var(--ink);border-radius:16px;box-shadow:var(--shadow);width:min(420px,100%);padding:18px 18px 16px;display:flex;flex-direction:column;gap:10px}
+.lghead{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.lg h3{margin:0;font-family:var(--f-display);font-weight:400;font-size:24px}
+.lgtxt{margin:0;font-size:14px;color:var(--muted)}
+.lgform{display:flex;flex-direction:column;gap:8px}
+.lgform label{font-size:13px;font-weight:700}
+.lgform input{font:inherit;font-size:16px;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
+.lgform input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.lgform .call{align-self:flex-start;border:0;cursor:pointer;font:inherit;font-weight:700}
+.lgnote{margin:0;font-size:12px;color:var(--muted)}
+.mine .chip{border-color:var(--accent);color:var(--accent);font-weight:600;display:inline-flex;align-items:center;gap:4px}
+.mine .chip .go{font-weight:700}
+
+/* computer screens: the whole app fits one screen — the left panel scrolls by itself, the map fills the rest */
+@media (min-width:901px){
+  html,body{height:100%;overflow:hidden}
+  body{margin:0}
+  .wrap{height:100vh;height:100dvh;max-width:1720px;padding-block:10px 12px;gap:10px}
+  header{flex:none;align-items:center}
+  /* one slim title bar: title · office name … numbers */
+  header{flex-wrap:nowrap;gap:8px 20px}
+  header > div:first-child{display:flex;align-items:baseline;flex-wrap:wrap;gap:2px 14px;min-width:0}
+  header .kick{order:2;font-size:12.5px;letter-spacing:.02em;color:var(--muted);font-weight:600}
+  h1{order:1;font-size:clamp(22px,2vw,28px);margin:0;white-space:nowrap}
+  .stats{gap:16px;align-items:baseline;flex:none}
+  .stats > div{display:flex;align-items:baseline;gap:4px;white-space:nowrap}
+  .stats b{display:inline;font-size:19px}
+  /* summary bar stays on one line */
+  .sumcard .sum{flex-wrap:nowrap;align-items:center}
+  .sumcard .sum h2{flex:1;min-width:0;font-size:14.5px;display:flex;white-space:nowrap}
+  .sumcard .snm{min-width:0;overflow:hidden;text-overflow:ellipsis;margin-right:.3em}
+  .sumcard .srest{flex:none}
+  .sumcard .mbtn{flex:none;display:inline-flex;align-items:center;padding:6px 8px}
+  .sumcard .cptx{display:none}
+  header p{display:none}
+  .stats b{font-size:22px}
+  .grid{flex:1;min-height:0;align-items:stretch;grid-template-columns:minmax(340px,420px) minmax(0,1fr)}
+  .side{min-height:0;overflow:hidden;gap:10px}
+  .side > .card{flex:none;padding:12px 14px}
+  .side .lbl{margin-bottom:6px}
+  .side .row{margin-top:8px}
+  .side .pick{margin-top:10px;padding:8px 12px}
+  #pick + .row > span{display:none}
+  #l-school, #l-rad{display:none}
+  .side .combo input{padding:9px 12px 9px 38px;font-size:15px}
+  /* the 구·학교급 filters only matter while searching, so they open with the search box */
+  .side > .card:first-child .row[role=group]{display:none}
+  .side > .card.searching:first-child .row[role=group]{display:flex}
+  .side .pick{gap:8px}
+  .side .pick > svg{width:24px;height:24px}
+  .side .pick > div{display:flex;align-items:baseline;gap:4px 8px;flex-wrap:wrap}
+  .side .pick .nm{font-size:15px}
+  .side .lbl[style]{margin-top:10px!important}
+  .sumcard .mbtn{padding:3px 9px;font-size:12.5px}
+  #pick + .row{margin-top:0}
+  #pick + .row:has(#backBtn:not([hidden])){margin-top:8px}
+  .side .seg button{padding:6px 0}
+  .side .cat{font-size:12.5px;padding:3px 9px 3px 3px}
+  /* only the institution list scrolls; the search and range panels above stay put */
+  .listpane{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:8px;padding:0 6px 4px 0;scrollbar-gutter:stable}
+  .sumcard{position:sticky;top:0;z-index:2;flex:none;padding:10px 14px}
+  .list{max-height:none;overflow:visible}
+  .mapcard{position:relative;top:0;display:flex;flex-direction:column;min-height:0}
+  .mapwrap{flex:1;min-height:0}
+  #map{position:absolute;inset:0;width:100%;height:100%;aspect-ratio:auto}
+  .listpane > footer{padding:6px 2px 8px}
+}
+#copyAll{display:inline-flex;align-items:center;gap:5px}
+
+/* phones: slim title bar and one-line summary (same idea as the computer layout) */
+@media (max-width:900px){
+  .wrap{padding-block:10px 24px;gap:12px}
+  header{flex-wrap:wrap;align-items:center;gap:6px 12px}
+  header > div:first-child{display:flex;flex-direction:column;min-width:0;flex:1 1 0}
+  .whobox{flex:0 0 100%;flex-direction:row;justify-content:flex-end;align-items:center}
+  header .kick{order:2;font-size:11.5px;letter-spacing:0;color:var(--muted);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  h1{order:1;font-size:clamp(17px,5.4vw,24px);margin:0;white-space:nowrap}
+  header p{display:none}
+  .stats{gap:10px;align-items:baseline;flex:none;font-size:11px}
+  .stats > div{display:flex;flex-direction:column;align-items:center;line-height:1.1}
+  .stats b{font-size:16px}
+  .sumcard{padding:10px 14px}
+  .sumcard .sum{flex-wrap:nowrap;align-items:center}
+  .sumcard .sum h2{flex:1;min-width:0;font-size:14.5px;display:flex;white-space:nowrap}
+  .sumcard .snm{min-width:0;overflow:hidden;text-overflow:ellipsis;margin-right:.3em}
+  .sumcard .srest{flex:none}
+  .sumcard .mbtn{flex:none;display:inline-flex;align-items:center;padding:6px 8px}
+  .sumcard .cptx{display:none}
+}
+@media (max-width:370px){ .stats > div:nth-child(3){display:none} }
+/* phones: school search card — same as the computer layout (filters open with the search box, one-line chosen school) */
+@media (max-width:900px){
+  .side > .card:first-child{padding:12px 14px}
+  #l-school{display:none}
+  .combo input{padding:10px 12px 10px 38px}
+  .side > .card:first-child .row[role=group]{display:none;margin-top:8px}
+  .side > .card.searching:first-child .row[role=group]{display:flex}
+  .pick{margin-top:10px;padding:8px 12px;gap:8px}
+  .pick > svg{width:24px;height:24px}
+  .pick > div{display:flex;align-items:baseline;gap:0 8px;flex-wrap:wrap}
+  .pick .nm{font-size:15px}
+  #pick + .row > span{display:none}
+  #pick + .row{margin-top:0}
+  #pick + .row:has(#backBtn:not([hidden])){margin-top:8px}
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="g-wel" viewBox="-16 -16 32 32"><path d="M-8 1 L0 -7 L8 1 V8 H-8Z" fill="#fff"/><path d="M0 6 C-4 3 -4 0 -2 -0.5 C-1 -1 0 0 0 0.6 C0 0 1 -1 2 -0.5 C4 0 4 3 0 6Z" fill="var(--wel)"/></symbol>
+    <symbol id="g-care" viewBox="-16 -16 32 32"><path d="M-8 1 L0 -7 L8 1 V8 H-8Z" fill="#fff"/><circle cx="0" cy="2.5" r="2.6" fill="var(--care)"/><path d="M-3.5 8 a3.5 3 0 0 1 7 0Z" fill="var(--care)"/></symbol>
+    <symbol id="g-mind" viewBox="-16 -16 32 32"><path d="M-8 -6 H8 A2 2 0 0 1 10 -4 V3 A2 2 0 0 1 8 5 H-1 L-5 9 V5 H-8 A2 2 0 0 1 -10 3 V-4 A2 2 0 0 1 -8 -6Z" fill="#fff"/><path d="M0 3 C-4 0 -4 -3 -2 -3.5 C-1 -4 0 -3 0 -2.4 C0 -3 1 -4 2 -3.5 C4 -3 4 0 0 3Z" fill="var(--mind)"/></symbol>
+    <symbol id="g-safe" viewBox="-16 -16 32 32"><path d="M0 -9 L8 -6 V0 C8 5 4 8 0 10 C-4 8 -8 5 -8 0 V-6Z" fill="#fff"/><path d="M-3.5 0.5 L-1 3 L4 -2.5" fill="none" stroke="var(--safe)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="g-shelter" viewBox="-16 -16 32 32"><path d="M-9 0 L0 -8 L9 0 H6 V8 H-6 V0Z" fill="#fff"/><rect x="-2" y="2.5" width="4" height="5.5" fill="var(--shelter)"/></symbol>
+    <symbol id="g-med" viewBox="-16 -16 32 32"><rect x="-8" y="-8" width="16" height="16" rx="4" fill="#fff"/><path d="M-1.8 -5.5 H1.8 V-1.8 H5.5 V1.8 H1.8 V5.5 H-1.8 V1.8 H-5.5 V-1.8 H-1.8Z" fill="var(--med)"/></symbol>
+    <symbol id="g-youth" viewBox="-16 -16 32 32"><path d="M-5 9 V-8" stroke="#fff" stroke-width="2" stroke-linecap="round"/><path d="M-4 -8 L8 -4 L-4 0Z" fill="#fff"/><path d="M-9 9 H6" stroke="#fff" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="g-edu" viewBox="-16 -16 32 32"><path d="M0 -4 C-3 -6.5 -7 -6.5 -9 -5.5 V6 C-7 5 -3 5 0 7 C3 5 7 5 9 6 V-5.5 C7 -6.5 3 -6.5 0 -4Z" fill="#fff"/><path d="M0 -4 V7" stroke="var(--edu)" stroke-width="1.4"/></symbol>
+    <symbol id="g-school" viewBox="-16 -16 32 32"><path d="M-10 -1 L0 -9 L10 -1 V9 H-10Z" fill="#fff"/><rect x="-2.5" y="2" width="5" height="7" fill="var(--focus)"/><path d="M0 -9 V-14 L6 -12.5 L0 -11" fill="#fff"/><circle cx="0" cy="-2.5" r="2" fill="var(--focus)"/></symbol>
+  </defs>
+</svg>
+
+<div class="wrap">
+  <header>
+    <div>
+      <div class="kick">부산광역시서부교육지원청 · 2026 학생맞춤통합지원</div>
+      <h1>학교 주변 도움 기관 찾기</h1>
+      <p>학교를 고르면 서구·중구·영도구·사하구의 복지·돌봄·상담·의료 기관을 가까운 순서로 보여 줘요. 거리는 학교에서 기관까지의 직선거리예요.</p>
+    </div>
+    <div class="stats" aria-label="수록 현황">
+      <div><b id="stRes">0</b>기관</div>
+      <div><b id="stSch">0</b>학교</div>
+      <div><b>4</b>개 구</div>
+    </div>
+    <div class="whobox" id="whoBox">
+      <button class="mbtn" id="loginBtn" type="button" hidden>기관 담당자 로그인</button>
+      <div class="whost" id="whoState" hidden></div>
+    </div>
+  </header>
+
+  <div class="grid">
+    <div class="side">
+      <section class="card" aria-labelledby="l-school">
+        <div class="lbl" id="l-school">기준 학교</div>
+        <div class="combo">
+          <div class="qbox">
+            <svg class="s" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16.5 16.5 L21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <input id="q" type="search" autocomplete="off" placeholder="학교 이름 입력 (예: 서부초)" role="combobox" aria-expanded="false" aria-controls="opts" aria-autocomplete="list">
+          </div>
+          <div class="row" role="group" aria-label="구 선택">
+            <div class="chips" id="guChips"></div>
+          </div>
+          <div class="row" role="group" aria-label="학교급 선택">
+            <div class="chips" id="lvChips"></div>
+          </div>
+          <div class="opts" id="opts" role="listbox" hidden></div>
+        </div>
+        <div class="pick" id="pick">
+          <svg width="30" height="30" aria-hidden="true"><circle cx="15" cy="15" r="14" fill="var(--accent)"/><use href="#g-school" x="1" y="1" width="28" height="28"/></svg>
+          <div style="min-width:0;flex:1">
+            <div class="nm" id="pickName">-</div>
+            <div class="sub" id="pickSub">-</div>
+          </div>
+        </div>
+        <div class="row" style="justify-content:space-between">
+          <span style="font-size:13px;color:var(--muted)">지도를 누르면 그 지점 주변 기관을 찾아 줘요.</span>
+          <button class="linkbtn" id="backBtn" type="button" hidden>← 돌아가기</button>
+        </div>
+        <div class="mine" id="mineBox" hidden>
+          <div class="lbl" style="margin:12px 0 6px"><span style="white-space:nowrap">내 기관으로 바로가기</span> <span style="font-weight:500;letter-spacing:0">· 누르면 입력 화면이 열려요</span></div>
+          <div class="chips" id="mineList"></div>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="l-rad">
+        <div class="lbl" id="l-rad">찾는 범위 (직선거리)</div>
+        <div class="seg" id="seg">
+          <button type="button" data-r="500" aria-pressed="false">500m</button>
+          <button type="button" data-r="1000" aria-pressed="true">1km</button>
+          <button type="button" data-r="2000" aria-pressed="false">2km</button>
+        </div>
+        <div class="lbl" style="margin-top:14px"><button class="cattog" id="catTog" type="button" aria-expanded="true" aria-controls="cats"><svg class="chev" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>분류<span class="ctip">· 누르면 그 분류만 보여요</span><span class="csum" id="catSum" hidden></span></button><button class="linkbtn" id="allCats" type="button">전체 보기</button></div>
+        <div class="cats" id="cats"></div>
+      </section>
+
+      <div class="listpane">
+      <section class="card sumcard" aria-live="polite">
+        <div class="sum">
+          <h2 id="sumText">-</h2>
+          <button class="mbtn" id="copyAll" type="button" title="목록 복사" aria-label="목록 복사"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 8V5a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h2" fill="none" stroke="currentColor" stroke-width="2"/></svg><span class="cptx">목록 복사</span></button>
+        </div>
+      </section>
+      <div class="list" id="list"></div>
+      <footer>
+        <div class="hot" aria-label="긴급 전화">
+          <span><b>112</b> 아동학대·범죄</span><span><b>117</b> 학교폭력</span><span><b>1388</b> 청소년상담</span><span><b>129</b> 긴급복지</span><span><b>1366</b> 여성긴급전화</span><span><b>1577-0199</b> 정신건강위기</span><span><b>109</b> 자살예방</span>
+        </div>
+        <div>출처: 2026 학생맞춤통합지원 복지 서비스별 자원 목록(부산서부교육지원청, 2026.10). 기관·학교 좌표는 지도 검색 기준이며, 점선 테두리 핀은 정확한 주소를 찾지 못해 대략 위치로 표시했어요. 관내 4개 구 밖(사상구·동구 등)의 기관은 들어 있지 않아요. 연계 전에 기관에 전화로 운영 여부를 확인하세요.</div>
+      </footer>
+      </div>
+    </div>
+
+    <section class="card mapcard" aria-label="지도">
+      <div class="maphead">
+        <div class="areabar" role="group" aria-labelledby="l-area"><span class="albl" id="l-area">구 전체</span><div class="chips" id="areaChips"><button class="chip" type="button" data-a="서구" aria-pressed="false">서구</button><button class="chip" type="button" data-a="중구" aria-pressed="false">중구</button><button class="chip" type="button" data-a="영도구" aria-pressed="false">영도구</button><button class="chip" type="button" data-a="사하구" aria-pressed="false">사하구</button><button class="chip" type="button" data-a="전체" aria-pressed="false">4개 구</button></div></div>
+        <div class="mapbtns">
+          <button class="mbtn" id="zIn" type="button" aria-label="지도 확대">＋</button>
+          <button class="mbtn" id="zOut" type="button" aria-label="지도 축소">－</button>
+          <button class="mbtn" id="fitBtn" type="button">범위에 맞추기</button>
+        </div>
+      </div>
+      <div class="mapwrap"><svg id="map" role="img" aria-label="학교와 주변 기관 위치 지도"></svg>
+      <section class="info" id="info" role="dialog" aria-labelledby="infoTitle" hidden></section></div>
+      <div class="legend" id="legend"></div>
+    </section>
+  </div>
+
+</div>
+<div class="toast" id="toast" hidden></div>
+<div class="lgwrap" id="lgWrap" hidden>
+  <section class="lg" role="dialog" aria-modal="true" aria-labelledby="lgTitle">
+    <div class="lghead"><h3 id="lgTitle">기관 담당자 로그인</h3><button class="ix" id="lgClose" type="button" aria-label="닫기">✕</button></div>
+    <p class="lgtxt">서부교육지원청에 등록된 담당자 이메일로 인증번호를 보내 드려요. 비밀번호는 필요 없어요.</p>
+    <form id="lgStep1" class="lgform">
+      <label for="lgEmail">담당자 이메일</label>
+      <input id="lgEmail" type="email" autocomplete="email" required placeholder="name@example.com">
+      <button class="call" id="lgSend" type="submit">인증번호 받기</button>
+    </form>
+    <form id="lgStep2" class="lgform" hidden>
+      <label for="lgCode">이메일로 받은 인증번호</label>
+      <input id="lgCode" inputmode="numeric" autocomplete="one-time-code" maxlength="10" required placeholder="메일로 받은 숫자 8자리">
+      <button class="call" id="lgVerify" type="submit">확인</button>
+      <button class="linkbtn" id="lgBack" type="button">이메일 다시 입력</button>
+    </form>
+    <div class="emsg" id="lgMsg" hidden></div>
+    <p class="lgnote">담당자 확인을 위해 이메일 주소만 사용하고, 담당 기간 동안 보관해요. 정원·참여 수 말고 학생 개인정보는 입력하지 마세요.</p>
+  </section>
+</div>
+<script src="config.js?v=c4056f35"></script>
+<script src="data/app-data.js?v=c4056f35"></script>
+<script src="app.js?v=c4056f35"></script>
+</body>
+</html>

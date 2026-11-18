@@ -229,25 +229,25 @@ function render(){
   if(S.back) $('#backBtn').textContent = `← ${S.back.name} 기준으로 돌아가기`;
   $('#pickSub').textContent = sc.home ? `${sc.addr} · 교육지원청` : sc.inst ? `${sc.gu} · 기관 위치 기준` : sc.custom ? `지도에서 고른 지점${sc.gu ? ' · ' + sc.gu : ''}` : `${sc.gu} · ${LV[sc.lv]}` + (sc.ap ? ' · 대략 위치' : '');
   const all = D.res.filter(r => !(sc.home && r.name === sc.name)).map(r => ({...r, m: dist(sc, r)})).sort((a,b) => a.m - b.m);
-  const inR = S.area ? all.filter(r => S.area === '전체' || r.gu === S.area) : all.filter(r => r.m <= S.r);
+  const inR = S.area ? all.filter(r => r.w && (S.area === '전체' || r.gu === S.area)) : all.filter(r => r.m <= S.r);
   catHost.querySelectorAll('.cat').forEach(b => { const c = b.dataset.c; b.setAttribute('aria-pressed', S.cats.has(c));
     b.querySelector('.n').textContent = inR.filter(r => r.cat === c).length; });
   current = inR.filter(r => S.cats.has(r.cat));
   paintCatSum();
-  $('#sumText').innerHTML = S.area ? `<em class="snm">${areaName(S.area)} 전체</em> <span class="srest">기관 <em>${current.length}곳</em></span>`
+  $('#sumText').innerHTML = S.area ? `<em class="snm">${areaName(S.area)}</em> <span class="srest">구 전체 담당 기관 <em>${current.length}곳</em></span>`
     : `<em class="snm">${sc.name}</em> <span class="srest">반경 ${fmtD(S.r)} 안에 기관 <em>${current.length}곳</em></span>`;
 
   const list = $('#list'); list.innerHTML = '';
   if(!current.length){
     const near = all.filter(r => S.cats.has(r.cat))[0];
-    if(S.area) list.innerHTML = '<div class="empty">고른 분류의 기관이 없어요. 분류를 더 골라 보세요.</div>';
+    if(S.area) list.innerHTML = '<div class="empty">고른 분류에는 구 전체를 맡는 기관이 없어요. 분류를 더 골라 보세요.</div>';
     else list.innerHTML = `<div class="empty">이 범위 안에는 기관이 없어요.${near ? `<br>가장 가까운 곳은 <b>${near.name}</b> (${fmtD(near.m)})이에요. 범위를 넓혀 보세요.` : ''}</div>`;
   }
   current.forEach(r => {
     const b = document.createElement('div'); b.className = 'item' + (isSel(r) ? ' on' : ''); b.tabIndex = 0; b.dataset.key = r.gu + r.no;
     b.setAttribute('role', 'button'); b.setAttribute('aria-label', `${r.name}, ${fmtD(r.m)}`);
     b.innerHTML = `${icon(r.cat, 30)}
-      <div class="t">${r.name}<span class="gu" style="background:var(${GUVAR[r.gu]})">${r.gu} ${r.no}</span></div>
+      <div class="t">${r.name}<span class="gu" style="background:var(${GUVAR[r.gu]})">${r.gu} ${r.no}</span>${r.w ? '<span class="wide">구 전체</span>' : ''}</div>
       <div class="dist">${fmtD(r.m)}<small>도보 약 ${walk(r.m)}분</small><span class="avail" data-k="${ikey(r)}" hidden></span></div>
       <div class="d">${CATL[r.cat]} · ${r.desc}</div>
       <div class="meta">
@@ -390,7 +390,7 @@ function showInfo(r){
     <div class="ib">
       ${icon(r.cat, 34)}
       <div style="min-width:0;flex:1">
-        <div class="ic-cat">${CATL[r.cat]}<span class="gu" style="background:var(${GUVAR[r.gu]})">${r.gu} ${r.no}</span></div>
+        <div class="ic-cat">${CATL[r.cat]}<span class="gu" style="background:var(${GUVAR[r.gu]})">${r.gu} ${r.no}</span>${r.w ? '<span class="wide">구 전체 담당</span>' : ''}</div>
         <h3 id="infoTitle">${r.name}</h3>
         <div class="idist"><b>${fmtD(r.m)}</b> · 도보 약 ${walk(r.m)}분 · ${S.school.name}에서</div>
       </div>
@@ -685,7 +685,7 @@ function copy(text, msg){
 }
 $('#copyAll').onclick = () => {
   const sc = S.school;
-  const lines = [S.area ? `[${areaName(S.area)} 전체] 도움 기관 ${current.length}곳 (${sc.name}에서 직선거리 순)` : `[${sc.name}] 반경 ${fmtD(S.r)} 안 도움 기관 ${current.length}곳 (직선거리 순)`];
+  const lines = [S.area ? `[${areaName(S.area)}] 구 전체 담당 기관 ${current.length}곳 (${sc.name}에서 직선거리 순)` : `[${sc.name}] 반경 ${fmtD(S.r)} 안 도움 기관 ${current.length}곳 (직선거리 순)`];
   current.forEach((r, i) => lines.push(`${i+1}. ${r.name} (${CATL[r.cat]}) ${fmtD(r.m)} · ${r.ph || '-'} · ${r.addr}`));
   lines.push('출처: 2026 학생맞춤통합지원 복지 서비스별 자원 목록(부산서부교육지원청)');
   copy(lines.join('\n'), `${current.length}곳 목록을 복사했어요`);
