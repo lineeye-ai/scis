@@ -193,7 +193,14 @@ document.addEventListener('pointerdown', e => { const c = q.closest('.card'); if
 q.addEventListener('blur', () => setTimeout(() => { if(optTap) return; opts.hidden = true; q.setAttribute('aria-expanded','false'); }, 250));
 /* phones: choose on finger-up, remembering which school was under the finger at touch-down.
    iOS can rebuild or move the list between touch-down and the click (keyboard closing, a Korean syllable being finished), which used to swallow the tap. */
-function pickOpt(s){ if(Date.now() - optPicked < 600) return; optPicked = Date.now(); optTap = null; setSchool(s); }
+function pickOpt(s){ if(Date.now() - optPicked < 600) return; optPicked = Date.now(); optTap = null; setSchool(s); showMapAfterPick(); }
+/* phones: once a school is chosen, put the keyboard away and bring the map into view */
+function showMapAfterPick(){
+  if(innerWidth > 900) return;
+  q.blur();
+  const go = () => { const mc = document.querySelector('.mapcard'); if(mc) scrollTo({top: Math.max(0, mc.getBoundingClientRect().top + scrollY - 8), behavior: 'smooth'}); };
+  requestAnimationFrame(go); setTimeout(go, 350); // again once the keyboard has finished closing and the page has settled
+}
 opts.addEventListener('pointerdown', e => { const b = e.target.closest('.opt[data-i]'); optTap = b && e.pointerType !== 'mouse' ? {s: optList[+b.dataset.i], x: e.clientX, y: e.clientY, t: Date.now()} : null; });
 opts.addEventListener('pointerup', e => { const t = optTap; if(!t) return; optTap = null;
   if(Math.hypot(e.clientX - t.x, e.clientY - t.y) < 12 && Date.now() - t.t < 900){
@@ -206,7 +213,7 @@ q.addEventListener('keydown', e => {
   if(e.key === 'ArrowDown' || e.key === 'ArrowUp'){ e.preventDefault(); if(opts.hidden) showOpts(true);
     optSel = Math.max(0, Math.min(items.length-1, optSel + (e.key === 'ArrowDown' ? 1 : -1)));
     items.forEach((it,i) => it.classList.toggle('on', i === optSel)); items[optSel]?.scrollIntoView({block:'nearest'}); q.setAttribute('aria-activedescendant', items[optSel]?.id || ''); }
-  else if(e.key === 'Enter'){ e.preventDefault(); const s = optList[optSel >= 0 ? optSel : 0]; if(s) setSchool(s); }
+  else if(e.key === 'Enter'){ e.preventDefault(); const s = optList[optSel >= 0 ? optSel : 0]; if(s){ setSchool(s); showMapAfterPick(); } }
   else if(e.key === 'Escape'){ opts.hidden = true; }
 });
 
