@@ -20,6 +20,8 @@ function dist(a, b){
 }
 const fmtD = m => m < 1000 ? `${Math.round(m/10)*10}m` : `${(m/1000).toFixed(1)}km`;
 const walk = m => Math.max(1, Math.round(m*1.3/67));
+/* travel time: on foot up to 10 minutes, by car beyond that (about 25 km/h in town, 1.4× the straight line) */
+const trip = m => walk(m) > 10 ? `차량 약 ${Math.max(1, Math.round(m*1.4/417))}분` : `도보 약 ${walk(m)}분`;
 
 const S = {school:null, r:1000, cats:new Set(CATS.map(c=>c[0])), gu:'전체', lv:'전체', sel:null, picking:false};
 try{ const saved = JSON.parse(localStorage.getItem('swk-school-finder')||'null'); if(saved){ if([500, 1000, 2000].includes(saved.r)) S.r = saved.r; } }catch(e){}
@@ -248,7 +250,7 @@ function render(){
     b.setAttribute('role', 'button'); b.setAttribute('aria-label', `${r.name}, ${fmtD(r.m)}`);
     b.innerHTML = `${icon(r.cat, 30)}
       <div class="t">${r.name}<span class="gu" style="background:var(${GUVAR[r.gu]})">${r.gu} ${r.no}</span>${r.w ? '<span class="wide">구 전체</span>' : ''}</div>
-      <div class="dist">${fmtD(r.m)}<small>도보 약 ${walk(r.m)}분</small><span class="avail" data-k="${ikey(r)}" hidden></span></div>
+      <div class="dist">${fmtD(r.m)}<small>${trip(r.m)}</small><span class="avail" data-k="${ikey(r)}" hidden></span></div>
       <div class="d">${CATL[r.cat]} · ${r.desc}</div>
       <div class="meta">
         <span class="addr">${r.addr}</span>${r.ap ? '<span class="tag" style="color:var(--muted)">대략 위치</span>' : ''}</div>`;
@@ -394,7 +396,7 @@ function showInfo(r){
       <div style="min-width:0;flex:1">
         <div class="ic-cat">${CATL[r.cat]}<span class="gu" style="background:var(${GUVAR[r.gu]})">${r.gu} ${r.no}</span>${r.w ? '<span class="wide">구 전체 담당</span>' : ''}</div>
         <h3 id="infoTitle">${r.name}</h3>
-        <div class="idist"><b>${fmtD(r.m)}</b> · 도보 약 ${walk(r.m)}분 · ${S.school.name}에서</div>
+        <div class="idist"><b>${fmtD(r.m)}</b> · ${trip(r.m)} · ${S.school.name}에서</div>
       </div>
       <button class="ix" type="button" aria-label="닫기">✕</button>
     </div>
