@@ -162,7 +162,7 @@ function chips(host, values, key){
 }
 chips($('#guChips'), GUS, 'gu'); chips($('#lvChips'), ['초','중','고'], 'lv');
 
-const q = $('#q'), opts = $('#opts'); let optSel = -1, optList = [];
+const q = $('#q'), opts = $('#opts'); let optSel = -1, optList = [], optSig = '', optTap = null, optPicked = 0;
 function norm(s){ return s.replace(/\s/g,'').replace(/등학교$|학교$/,''); }
 function showOpts(force, all){
   const t = all ? '' : norm(q.value);
@@ -170,9 +170,13 @@ function showOpts(force, all){
   const rank = x => { if(!t) return 0; const n = norm(x.name); return n === t ? 0 : n.startsWith(t) ? 1 : 2; };
   optList.sort((a,b) => rank(a) - rank(b) || '기초중고'.indexOf(a.lv) - '기초중고'.indexOf(b.lv) || a.name.localeCompare(b.name, 'ko'));
   if(!force && !t){ opts.hidden = true; q.setAttribute('aria-expanded', 'false'); return; }
+  // same list already on screen (e.g. iOS finishing a Korean syllable as you tap): keep it, so the tap is not lost
+  const sig = optList.map(s => s.name).join('|');
+  if(sig === optSig && !opts.hidden && opts.childElementCount){ opts.hidden = false; q.setAttribute('aria-expanded', 'true'); return; }
+  optSig = sig;
   opts.innerHTML = optList.length ? '' : '<div class="opt" aria-disabled="true">맞는 학교가 없어요. 지도에서 위치를 골라 보세요.</div>';
   optList.forEach((s, i) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'opt'; b.setAttribute('role', 'option'); b.id = 'o' + i;
-    b.innerHTML = `<span>${s.name}</span><small>${s.gu} · ${LV[s.lv]}</small>`; b.onmousedown = e => e.preventDefault(); b.onclick = () => { setSchool(s); };
+    b.innerHTML = `<span>${s.name}</span><small>${s.gu} · ${LV[s.lv]}</small>`; b.dataset.i = i; b.onmousedown = e => e.preventDefault(); b.onclick = () => pickOpt(s);
     opts.appendChild(b); });
   optSel = -1; opts.hidden = false; q.setAttribute('aria-expanded', 'true');
 }
@@ -186,7 +190,17 @@ q.addEventListener('input', () => { showOpts(true); q.closest('.card').classList
 q.addEventListener('focus', openOpts);
 q.addEventListener('click', () => { if(opts.hidden) openOpts(); });
 document.addEventListener('pointerdown', e => { const c = q.closest('.card'); if(!c.contains(e.target)) c.classList.remove('searching'); });
-q.addEventListener('blur', () => setTimeout(() => { opts.hidden = true; q.setAttribute('aria-expanded','false'); }, 120));
+q.addEventListener('blur', () => setTimeout(() => { if(optTap) return; opts.hidden = true; q.setAttribute('aria-expanded','false'); }, 250));
+/* phones: choose on finger-up, remembering which school was under the finger at touch-down.
+   iOS can rebuild or move the list between touch-down and the click (keyboard closing, a Korean syllable being finished), which used to swallow the tap. */
+function pickOpt(s){ if(Date.now() - optPicked < 600) return; optPicked = Date.now(); optTap = null; setSchool(s); }
+opts.addEventListener('pointerdown', e => { const b = e.target.closest('.opt[data-i]'); optTap = b && e.pointerType !== 'mouse' ? {s: optList[+b.dataset.i], x: e.clientX, y: e.clientY, t: Date.now()} : null; });
+opts.addEventListener('pointerup', e => { const t = optTap; if(!t) return; optTap = null;
+  if(Math.hypot(e.clientX - t.x, e.clientY - t.y) < 12 && Date.now() - t.t < 900){
+    // swallow the click the phone sends right after, or it would land on whatever is under the closed list
+    const eat = ev => { ev.preventDefault(); ev.stopPropagation(); }; document.addEventListener('click', eat, {capture: true, once: true}); setTimeout(() => document.removeEventListener('click', eat, true), 700);
+    pickOpt(t.s); } });
+opts.addEventListener('pointercancel', () => { optTap = null; }); // the finger scrolled the list
 q.addEventListener('keydown', e => {
   const items = [...opts.querySelectorAll('.opt[role=option]')];
   if(e.key === 'ArrowDown' || e.key === 'ArrowUp'){ e.preventDefault(); if(opts.hidden) showOpts(true);
