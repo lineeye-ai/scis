@@ -314,10 +314,11 @@ function drawMap(){
 }
 function ensureVisible(r){
   const [x, y] = P(r.lon, r.lat); const u = unit();
-  const pad = 60*u, top = 110*u, bottom = (innerWidth > 900 ? 40 : 40)*u, left = (innerWidth > 900 ? 380 : 20)*u;
-  const inside = x > vb[0]+left && x < vb[0]+vb[2]-pad && y > vb[1]+top && y < vb[1]+vb[3]-bottom;
+  const wide = innerWidth > 900, onR = wide && info.classList.contains('right');
+  const pad = 60*u, top = 110*u, bottom = 40*u, left = (wide && !onR ? 380 : 20)*u, right = onR ? 380*u : pad;
+  const inside = x > vb[0]+left && x < vb[0]+vb[2]-right && y > vb[1]+top && y < vb[1]+vb[3]-bottom;
   if(!inside){ const [sx, sy] = P(S.school.lon, S.school.lat);
-    const cx = innerWidth > 900 ? x - (left - pad)/2 : x; animTo([cx - vb[2]/2, y - vb[3]/2 + 40*u, vb[2], vb[3]]); }
+    const cx = !wide ? x : onR ? x + (right - pad)/2 : x - (left - pad)/2; animTo([cx - vb[2]/2, y - vb[3]/2 + 40*u, vb[2], vb[3]]); }
 }
 function ensureVisibleSheet(r, mapTop){
   const [x, y] = P(r.lon, r.lat); const u = unit(); unitFast();
@@ -404,7 +405,8 @@ function showInfo(r){
     <div class="iaddr">${r.addr}${r.ap ? ' <span class="tag">대략 위치</span>' : ''}</div>
     </div>`;
   info.classList.toggle('full', P2.editing === ikey(r)); info.hidden = false;
-  if(fresh){ info.classList.remove('rise'); void info.offsetWidth; info.classList.add('rise'); } P2.shown = r; P2.items = items; bindProg(); bindSheet();
+  if(fresh){ info.classList.toggle('right', Math.random() < .5); // computers: the popup opens on the left or the right at random
+    info.classList.remove('rise'); void info.offsetWidth; info.classList.add('rise'); } P2.shown = r; P2.items = items; bindProg(); bindSheet();
   info.querySelector('.ix').onclick = () => { S.sel = null; hideInfo(); document.querySelectorAll('.item.on').forEach(i => i.classList.remove('on')); drawMap(); };
   const cp = info.querySelector('.copy'); if(cp) cp.onclick = () => copy(tel, `${tel} 복사했어요`);
 }
