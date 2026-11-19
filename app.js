@@ -20,8 +20,8 @@ function dist(a, b){
 }
 const fmtD = m => m < 1000 ? `${Math.round(m/10)*10}m` : `${(m/1000).toFixed(1)}km`;
 const walk = m => Math.max(1, Math.round(m*1.3/67));
-/* travel time: on foot up to 10 minutes, by car beyond that (about 25 km/h in town, 1.4× the straight line) */
-const trip = m => walk(m) > 10 ? `차량 약 ${Math.max(1, Math.round(m*1.4/417))}분` : `도보 약 ${walk(m)}분`;
+/* travel time: on foot up to 15 minutes, by car beyond that (about 25 km/h in town, 1.4× the straight line) */
+const trip = m => walk(m) > 15 ? `차량 약 ${Math.max(1, Math.round(m*1.4/417))}분` : `도보 약 ${walk(m)}분`;
 
 const S = {school:null, r:1000, cats:new Set(CATS.map(c=>c[0])), gu:'전체', lv:'전체', sel:null, picking:false};
 try{ const saved = JSON.parse(localStorage.getItem('swk-school-finder')||'null'); if(saved){ if([500, 1000, 2000].includes(saved.r)) S.r = saved.r; } }catch(e){}
