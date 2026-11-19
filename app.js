@@ -196,7 +196,7 @@ q.addEventListener('keydown', e => {
   else if(e.key === 'Escape'){ opts.hidden = true; }
 });
 
-$('#seg').querySelectorAll('button').forEach(b => b.onclick = () => { S.r = +b.dataset.r; S.area = null; save(); render(); fitRadius(); });
+$('#seg').querySelectorAll('button').forEach(b => b.onclick = () => { S.r = +b.dataset.r; S.area = null; S.sel = null; hideInfo(); save(); render(); fitRadius(); });
 /* 구 전체 보기: every institution in one 구 (or all four), whatever the distance */
 const areaName = a => a === '전체' ? '4개 구' : a;
 $('#areaChips').querySelectorAll('.chip').forEach(b => b.onclick = () => { const a = b.dataset.a; S.area = S.area === a ? null : a; S.sel = null; hideInfo(); render(); if(S.area) fitArea(); else fitRadius(); });
