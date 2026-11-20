@@ -631,7 +631,7 @@ lg.s1.addEventListener('submit', async e => {
     await getSb();
     const reg = await P2.sb.rpc('is_registered', {p_email: email});
     if(reg.error) throw reg.error;
-    if(reg.data !== true){ lgMsg('등록되지 않은 이메일이에요. 서부교육지원청 담당 장학사에게 담당자 등록을 요청해 주세요.'); return; }
+    if(reg.data !== true){ lgMsg('등록되지 않은 이메일이에요. 아래 [담당자 신청]에서 먼저 신청해 주세요.'); return; }
     const { error } = await P2.sb.auth.signInWithOtp({email, options: {shouldCreateUser: true}});
     if(error){
       lgMsg(error.status === 429 || /rate|seconds/i.test(error.message || '') ? '인증번호를 너무 자주 요청했어요. 1분쯤 뒤에 다시 시도해 주세요.' : '인증번호를 보내지 못했어요. 잠시 뒤 다시 시도해 주세요.');

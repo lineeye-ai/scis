@@ -68,7 +68,7 @@ async function start(){
     return;
   }
   $('#login').hidden = true; $('#app').hidden = false;
-  await Promise.all([loadStaff(), loadSeats(), loadLog()]);
+  await Promise.all([loadStaff(), loadSeats(), loadLog(), loadReqs()]);
 }
 
 /* staff */
@@ -123,6 +123,58 @@ $('#bulkBtn').onclick = async () => {
   msg($('#bmsg'), `${rows.length}명 등록했어요.`, true); $('#bulk').value = ''; loadStaff();
 };
 $('#bmsg').style.whiteSpace = 'pre-line';
+
+/* applications sent through apply.html */
+let REQS = [];
+async function loadReqs(){
+  const { data, error } = await sb.from('staff_requests').select('*').order('created_at', {ascending: false}).limit(300);
+  if(error) return msg($('#rmsg'), '신청 목록을 불러오지 못했어요: ' + error.message);
+  REQS = data || []; paintReqs();
+}
+function paintReqs(){
+  const all = $('#reqAll').checked, rows = REQS.filter(r => all || r.status === 'pending');
+  const pend = REQS.filter(r => r.status === 'pending').length;
+  $('#reqCnt').textContent = pend ? `대기 ${pend}건` : '대기 없음';
+  const ST = {pending: '대기', approved: '승인', rejected: '반려'};
+  const person = (n, d, p, e) => n || e ? `<div>${esc(n || '')}${d ? ` <span class="sub">${esc(d)}</span>` : ''}<br>${esc(e || '')}${p ? `<br><span class="sub">${esc(p)}</span>` : ''}</div>` : '';
+  const fixes = r => [['기관명', r.fix_name], ['주소', r.fix_addr], ['전화', r.fix_phone], ['홈페이지', r.fix_site], ['기타', r.fix_etc]]
+    .filter(f => f[1]).map(f => `<div><span class="sub">${f[0]}</span> ${esc(f[1])}</div>`).join('') || '<span class="sub">없음</span>';
+  $('#reqs').innerHTML = rows.length ? rows.map(r => `<tr>
+    <td>${esc(fmt(r.created_at))}</td>
+    <td>${esc(r.inst_name)}<br><span class="sub">${esc((BYKEY[r.inst_key] || {}).gu || '')} · ${esc(r.inst_key)}</span></td>
+    <td>${person(r.name, r.dept, r.phone, r.email)}${r.email2 ? '<hr style="border:0;border-top:1px dashed var(--line);margin:6px 0">' + person(r.name2, r.dept2, r.phone2, r.email2) : ''}</td>
+    <td>${fixes(r)}</td>
+    <td><span class="st ${r.status}">${ST[r.status] || r.status}</span>${r.handled_at ? `<br><span class="sub">${esc(fmt(r.handled_at))}</span>` : ''}</td>
+    <td>${r.status === 'pending' ? `<button class="pri sm" data-act="ok" data-id="${r.id}" type="button">승인</button><button class="sm" data-act="no" data-id="${r.id}" type="button">반려</button>` : ''}<button class="del" data-act="del" data-id="${r.id}" type="button">삭제</button></td></tr>`).join('')
+    : `<tr><td colspan="6" class="muted">${all ? '신청이 없어요.' : '처리할 신청이 없어요.'}</td></tr>`;
+}
+$('#reqAll').addEventListener('change', paintReqs);
+$('#reqCopy').onclick = async () => {
+  const url = new URL('apply.html', location.href).href;
+  try{ await navigator.clipboard.writeText(url); msg($('#rmsg'), '신청서 주소를 복사했어요: ' + url, true); }
+  catch(e){ msg($('#rmsg'), '신청서 주소: ' + url, true); }
+};
+$('#reqs').addEventListener('click', async e => {
+  const b = e.target.closest('button[data-act]'); if(!b) return;
+  const r = REQS.find(x => String(x.id) === b.dataset.id); if(!r) return;
+  const who = `${r.inst_name} — ${r.name} (${r.email}${r.email2 ? ', ' + r.email2 : ''})`;
+  let error = null;
+  if(b.dataset.act === 'ok'){
+    if(!window.confirm(`${who}\n\n담당자로 등록할까요?`)) return;
+    ({ error } = await sb.rpc('approve_staff_request', {p_id: r.id}));
+    if(!error){ msg($('#rmsg'), `${r.inst_name} 담당자를 등록했어요.`, true); await loadStaff(); }
+  } else if(b.dataset.act === 'no'){
+    if(!window.confirm(`${who}\n\n이 신청을 반려할까요?`)) return;
+    ({ error } = await sb.from('staff_requests').update({status: 'rejected', handled_by: loginEmail || null, handled_at: new Date().toISOString()}).eq('id', r.id));
+    if(!error) msg($('#rmsg'), '반려했어요.', true);
+  } else {
+    if(!window.confirm(`${who}\n\n신청 기록을 삭제할까요? (등록된 담당자는 그대로 남아요)`)) return;
+    ({ error } = await sb.from('staff_requests').delete().eq('id', r.id));
+    if(!error) msg($('#rmsg'), '삭제했어요.', true);
+  }
+  if(error) return msg($('#rmsg'), '처리하지 못했어요: ' + error.message);
+  loadReqs();
+});
 
 /* seats + log */
 async function loadSeats(){

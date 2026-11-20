@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://*.supabase.co; base-uri 'self'; form-action 'self'">
+<meta name="robots" content="noindex">
+<title>기관 담당자 신청</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<style>
+:root{--bg:#F3F6F7;--panel:#fff;--ink:#18252B;--muted:#5B6B73;--line:#DCE4E7;--accent:#0F6E8C;--accent-ink:#fff;--accent-soft:#E2F0F5;--bad:#C8352B;--ok:#1E8A4C;
+  --f:'IBM Plex Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0F171B;--panel:#162228;--ink:#E7EEF1;--muted:#97A8B0;--line:#2A3A42;--accent:#5CB8D6;--accent-ink:#0B1A20;--accent-soft:#183540;--bad:#F27A70;--ok:#5BCB8A;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0F171B;--panel:#162228;--ink:#E7EEF1;--muted:#97A8B0;--line:#2A3A42;--accent:#5CB8D6;--accent-ink:#0B1A20;--accent-soft:#183540;--bad:#F27A70;--ok:#5BCB8A;color-scheme:dark}
+*{box-sizing:border-box}[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 var(--f)}
+header{background:var(--panel);border-bottom:1px solid var(--line);padding:14px 16px}
+header .in{max-width:760px;margin:0 auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header h1{font-size:19px;margin:0;flex:1}
+header a{color:var(--accent);font-size:14px}
+main{max-width:760px;margin:0 auto;padding:16px;display:grid;gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px}
+.card h2{font-size:16px;margin:0 0 4px;display:flex;align-items:center;gap:8px}
+.card h2 .n{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--accent);color:var(--accent-ink);font-size:13px}
+.lead{color:var(--muted);font-size:14px;margin:0 0 12px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px}
+@media (max-width:600px){.grid{grid-template-columns:1fr}}
+.full{grid-column:1/-1}
+label{display:block;font-size:13px;font-weight:600;color:var(--muted);margin:0 0 4px}
+label .req{color:var(--bad)}
+input,select,textarea{width:100%;font:inherit;color:inherit;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:10px 11px}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
+textarea{min-height:70px;resize:vertical}
+.hint{font-size:12.5px;color:var(--muted);margin-top:4px}
+details summary{cursor:pointer;font-weight:600;color:var(--accent)}
+details[open] summary{margin-bottom:10px}
+.cur{font-size:12.5px;color:var(--muted);background:var(--bg);border-radius:8px;padding:2px 8px;margin-top:4px;word-break:break-all}
+table{width:100%;border-collapse:collapse;font-size:14px;margin:4px 0 12px}
+th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+th{width:28%;background:var(--accent-soft);font-weight:600}
+.agree{display:flex;gap:18px;flex-wrap:wrap;font-weight:600}
+.agree label{display:flex;align-items:center;gap:6px;color:var(--ink);font-size:15px;margin:0;cursor:pointer}
+.agree input{width:auto}
+.submit{display:flex;justify-content:flex-end;gap:10px;align-items:center;flex-wrap:wrap}
+button{font:inherit;cursor:pointer;border-radius:10px;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);font-weight:700;padding:11px 22px}
+button:disabled{opacity:.55;cursor:default}
+.msg{font-size:14px}.msg.bad{color:var(--bad)}.msg.ok{color:var(--ok)}
+.done{text-align:center;padding:34px 18px}
+.done h2{display:block;font-size:20px}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+</style>
+</head>
+<body>
+<header><div class="in"><h1>학교 주변 도움 기관 찾기 · 기관 담당자 신청</h1><a href="./">← 지도로</a></div></header>
+<main>
+<form id="f" novalidate style="display:grid;gap:14px">
+  <section class="card">
+    <p class="lead" style="margin:0">지역 기관의 담당자로 등록되면, 웹앱에서 우리 기관의 <b>프로그램과 정원·참여 인원</b>을 직접 입력할 수 있어요. 아래 내용을 적어 신청하시면 교육지원청에서 확인한 뒤 등록하고, 등록이 끝나면 적어 주신 이메일로 로그인할 수 있어요.</p>
+  </section>
+
+  <section class="card">
+    <h2><span class="n">1</span>기관 선택</h2>
+    <p class="lead">웹앱에 등록된 기관 중에서 골라 주세요.</p>
+    <div class="grid">
+      <div><label for="gu">구 <span class="req">*</span></label><select id="gu" required></select></div>
+      <div><label for="inst">기관 <span class="req">*</span></label><select id="inst" required><option value="">구를 먼저 고르세요</option></select></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2><span class="n">2</span>담당자</h2>
+    <p class="lead">로그인 인증번호는 <b>이메일</b>로 보내 드려요. 개인 메일보다 기관 업무용 이메일을 권장해요.</p>
+    <div class="grid">
+      <div><label for="name">성명 <span class="req">*</span></label><input id="name" maxlength="40" autocomplete="name" required></div>
+      <div><label for="dept">부서·직위</label><input id="dept" maxlength="60" placeholder="예) 사회복지사"></div>
+      <div><label for="phone">전화번호</label><input id="phone" maxlength="30" inputmode="tel" autocomplete="tel" placeholder="예) 051-000-0000"></div>
+      <div></div>
+      <div><label for="email">로그인용 이메일 <span class="req">*</span></label><input id="email" type="email" maxlength="120" autocomplete="email" required placeholder="name@example.com"></div>
+      <div><label for="email_c">이메일 확인 <span class="req">*</span></label><input id="email_c" type="email" maxlength="120" autocomplete="off" required placeholder="한 번 더 입력"></div>
+    </div>
+    <details style="margin-top:14px">
+      <summary>담당자 한 명 더 등록하기 (선택)</summary>
+      <div class="grid">
+        <div><label for="name2">성명</label><input id="name2" maxlength="40"></div>
+        <div><label for="dept2">부서·직위</label><input id="dept2" maxlength="60"></div>
+        <div><label for="phone2">전화번호</label><input id="phone2" maxlength="30" inputmode="tel"></div>
+        <div><label for="email2">로그인용 이메일</label><input id="email2" type="email" maxlength="120"></div>
+      </div>
+    </details>
+  </section>
+
+  <section class="card">
+    <h2><span class="n">3</span>기관 정보 수정 요청 <span style="font-weight:500;color:var(--muted);font-size:13px">(고칠 것이 있을 때만)</span></h2>
+    <p class="lead">지금 웹앱에 보이는 내용이 회색 칸에 나와요. 바뀐 점만 적어 주세요.</p>
+    <div class="grid">
+      <div class="full"><label for="fix_name">기관명</label><input id="fix_name" maxlength="200"><div class="cur" id="cur_name"></div></div>
+      <div class="full"><label for="fix_addr">주소</label><input id="fix_addr" maxlength="200"><div class="cur" id="cur_addr"></div></div>
+      <div><label for="fix_phone">대표 전화번호</label><input id="fix_phone" maxlength="200"><div class="cur" id="cur_phone"></div></div>
+      <div><label for="fix_site">홈페이지</label><input id="fix_site" maxlength="300" placeholder="https://"><div class="cur" id="cur_site"></div></div>
+      <div class="full"><label for="fix_etc">기타 (운영 시간, 대상, 프로그램 등)</label><textarea id="fix_etc" maxlength="1000"></textarea></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2><span class="n">4</span>개인정보 수집·이용 동의 <span class="req">*</span></h2>
+    <table>
+      <tr><th>수집·이용 목적</th><td>「학교 주변 도움 기관 찾기」 웹앱 기관 담당자 등록·로그인 인증 및 정보 입력 관련 업무 연락</td></tr>
+      <tr><th>수집 항목</th><td>(필수) 성명, 로그인용 이메일 / (선택) 부서·직위, 전화번호, 추가 담당자의 같은 항목</td></tr>
+      <tr><th>보유·이용 기간</th><td>담당자 변경·해제 또는 웹앱 운영 종료 시까지 (이후 지체 없이 파기)</td></tr>
+      <tr><th>동의 거부 권리</th><td>동의를 거부할 수 있으며, 거부하면 기관 담당자로 등록되지 않아 웹앱에서 직접 입력할 수 없습니다.</td></tr>
+    </table>
+    <p class="hint" style="margin:0 0 12px">※ 웹앱 로그인에는 이메일만 쓰이고, 성명·부서·전화번호는 교육지원청 담당자만 업무 연락에 사용합니다. 추가 담당자를 적으셨다면 그분께도 동의를 받아 주세요.</p>
+    <div class="agree" role="radiogroup" aria-label="개인정보 수집·이용 동의">
+      <label><input type="radio" name="consent" value="yes"> 동의합니다</label>
+      <label><input type="radio" name="consent" value="no"> 동의하지 않습니다</label>
+    </div>
+  </section>
+
+  <div class="hp" aria-hidden="true"><label for="website">website</label><input id="website" tabindex="-1" autocomplete="off"></div>
+
+  <section class="card submit">
+    <div class="msg" id="msg" role="status"></div>
+    <button id="send" type="submit">신청하기</button>
+  </section>
+</form>
+
+<section class="card done" id="done" hidden>
+  <h2>신청이 접수됐어요</h2>
+  <p>교육지원청에서 확인한 뒤 담당자로 등록해 드려요.<br>등록이 끝나면 지도 화면의 <b>[기관 담당자 로그인]</b>에서 <b id="doneEmail"></b>로 로그인할 수 있어요.</p>
+  <p class="hint">인증 메일은 studentintegratedsupport@gmail.com에서 보내요. 메일이 보이지 않으면 스팸 메일함도 확인해 주세요.</p>
+  <p><a href="./">지도 화면으로 가기</a></p>
+</section>
+</main>
+<script src="config.js"></script>
+<script src="data/app-data.js"></script>
+<script src="apply.js"></script>
+</body>
+</html>

@@ -30,6 +30,9 @@ button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--line
 button.pri{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
 button:disabled{opacity:.55;cursor:default}
 button.del{color:var(--bad);padding:4px 10px;font-size:13px}
+button.sm{padding:4px 10px;font-size:13px;margin:0 4px 4px 0}
+.st{font-size:12px;font-weight:700;border-radius:6px;padding:1px 7px;white-space:nowrap}.st.pending{background:#FFF3D6;color:#8A5A00}.st.approved{background:#DDF3E5;color:#1E6B3E}.st.rejected{background:#F3E1E0;color:#9A2E25}
+.sub{color:var(--muted);font-size:12.5px}
 .msg{margin-top:8px;font-size:14px}.msg.bad{color:var(--bad)}.msg.ok{color:var(--ok)}
 table{width:100%;border-collapse:collapse;font-size:14px}
 th,td{text-align:left;padding:7px 6px;border-bottom:1px solid var(--line);vertical-align:top}
@@ -51,6 +54,14 @@ th{font-weight:600;color:var(--muted);font-size:13px}
 </section>
 
 <main id="app" hidden>
+  <section class="card">
+    <h2>담당자 신청 <span class="muted" id="reqCnt"></span></h2>
+    <p class="muted" style="margin:0 0 8px">기관에서 신청서로 보낸 내용이에요. <b>승인</b>하면 담당자로 바로 등록돼요. 신청서 주소를 공문이나 메일에 넣어 보내세요.</p>
+    <div class="bar"><label style="margin:0;display:flex;gap:6px;align-items:center;color:var(--ink);font-size:14px"><input type="checkbox" id="reqAll" style="width:auto;flex:none;min-width:0;padding:0;margin:0"> 처리한 신청도 보기</label><span style="flex:1"></span><a href="apply.html" target="_blank" rel="noopener" style="font-size:14px">신청서 열기 ↗</a><button id="reqCopy" type="button">신청서 주소 복사</button></div>
+    <div class="tw"><table><thead><tr><th>신청일</th><th>기관</th><th>담당자</th><th>기관 정보 수정 요청</th><th>상태</th><th></th></tr></thead><tbody id="reqs"></tbody></table></div>
+    <div class="msg" id="rmsg"></div>
+  </section>
+
   <section class="card">
     <h2>담당자 등록</h2>
     <div class="row">
