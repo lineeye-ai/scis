@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>기기별 미리보기 · 서부온길이음 신호등</title>
+<style>
+:root{--bg:#1d2127;--panel:#2a3038;--line:#3a424d;--ink:#eef1f4;--sub:#a9b3be;--acc:#3cc36b;--ios:#f2f2f7;--and:#ffffff}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:14px/1.45 -apple-system,"Segoe UI","Malgun Gothic","Apple SD Gothic Neo",sans-serif}
+header{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;padding:10px 16px;background:var(--panel);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+header h1{font-size:15px;margin:0 8px 0 0;font-weight:700;white-space:nowrap}
+header h1 b{color:var(--acc)}
+label{color:var(--sub);font-size:13px;display:flex;align-items:center;gap:6px}
+select,button{font:inherit;font-size:13px;color:var(--ink);background:#20252c;border:1px solid var(--line);border-radius:8px;padding:6px 10px;cursor:pointer}
+button:hover,select:hover{border-color:#5b6673}
+button.on{background:var(--acc);border-color:var(--acc);color:#0d1a12;font-weight:700}
+.sp{flex:1}
+main{display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-start;gap:28px;padding:22px 16px 10px}
+.col{display:flex;flex-direction:column;align-items:center;gap:10px}
+.cap{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center}
+.cap .tag{font-weight:700;font-size:14px}
+.cap .sz{color:var(--sub);font-size:12px;font-variant-numeric:tabular-nums}
+.slot{position:relative}
+.dev{position:absolute;left:0;top:0;transform-origin:0 0;border-radius:44px;padding:12px;background:#0b0c0e;box-shadow:0 0 0 2px #444b55,0 18px 40px rgba(0,0,0,.45)}
+.dev.android{border-radius:34px;padding:10px}
+.scr{position:relative;overflow:hidden;border-radius:34px;background:#fff;display:flex;flex-direction:column}
+.android .scr{border-radius:26px}
+.sb{flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 22px;font:600 13px -apple-system,"Segoe UI",sans-serif;color:#111;background:#fff}
+.sb .ic{display:flex;gap:5px;align-items:center}
+.sb .ic i{display:block;background:#111;border-radius:2px}
+.island{position:absolute;left:50%;top:11px;width:122px;height:35px;margin-left:-61px;background:#000;border-radius:20px;z-index:3}
+.punch{position:absolute;left:50%;top:9px;width:12px;height:12px;margin-left:-6px;background:#000;border-radius:50%;z-index:3}
+.url{flex:none;display:flex;align-items:center;gap:8px;padding:0 10px;background:#fff;color:#333;font:13px -apple-system,"Segoe UI",sans-serif}
+.url .box{flex:1;height:36px;border-radius:18px;background:#eef0f3;display:flex;align-items:center;padding:0 14px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;color:#444}
+.ios .url .box{justify-content:center;height:40px;border-radius:12px;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.16)}
+.ios .url{background:rgba(246,246,248,.96);border-top:1px solid #d9d9de;flex-direction:column;align-items:stretch;justify-content:flex-start;padding:8px 12px 0}
+.ios .url .home{height:5px;width:134px;border-radius:3px;background:#111;margin:auto auto 8px}
+.nav{flex:none;display:flex;justify-content:center;align-items:center;background:#fff}
+.nav i{display:block;width:108px;height:4px;border-radius:2px;background:#333}
+iframe{flex:1;border:0;width:100%;display:block;background:#fff}
+.note{max-width:900px;margin:6px auto 22px;padding:0 16px;color:var(--sub);font-size:12.5px;text-align:center}
+.note b{color:var(--ink)}
+@media (max-width:640px){header h1{width:100%}}
+</style>
+</head>
+<body>
+<header>
+  <h1><b>●</b> 서부온길이음 신호등 · 기기별 미리보기</h1>
+  <label>화면 <select id="page">
+    <option value="index.html">메인(기관 찾기)</option>
+    <option value="apply.html">담당자 신청서</option>
+    <option value="admin.html">관리자</option>
+  </select></label>
+  <button id="rot" title="가로·세로 전환">세로</button>
+  <label>크기 <select id="zoom">
+    <option value="fit">창에 맞춤</option>
+    <option value="1">100%</option>
+    <option value=".85">85%</option>
+    <option value=".7">70%</option>
+  </select></label>
+  <span class="sp"></span>
+  <button id="reload">↻ 둘 다 새로고침</button>
+</header>
+<main id="main"></main>
+<p class="note">화면 폭·높이와 브라우저 주소창·상태 표시줄이 차지하는 영역을 실제 기기 크기로 맞춘 <b>배치 확인용 미리보기</b>입니다.
+화면 안의 앱은 지금 쓰는 컴퓨터 브라우저로 그려지므로, 아이폰 사파리 고유의 동작(키보드, 위치 권한, 글꼴 차이 등)까지 똑같지는 않습니다. 이런 차이는 실제 기기에서 한 번 더 확인해 주세요.</p>
+<script>
+const DEV={
+  android:{name:'안드로이드 · 크롬',list:[
+    {id:'s24',n:'갤럭시 S24',w:360,h:780},
+    {id:'s24u',n:'갤럭시 S24 울트라',w:384,h:824},
+    {id:'a',n:'갤럭시 A 시리즈',w:412,h:915},
+    {id:'zf',n:'갤럭시 Z 폴드(펼침)',w:673,h:841}]},
+  ios:{name:'아이폰 · 사파리',list:[
+    {id:'se',n:'아이폰 SE',w:375,h:667,se:1},
+    {id:'i15',n:'아이폰 15·16',w:393,h:852},
+    {id:'i16p',n:'아이폰 16 프로 맥스',w:440,h:956},
+    {id:'mini',n:'아이폰 13 미니',w:375,h:812}]}
+};
+const st={page:'index.html',land:false,zoom:'fit',sel:{android:'s24',ios:'i15'}};
+try{const s=JSON.parse(localStorage.getItem('pv')||'{}');Object.assign(st,s);st.sel=Object.assign({android:'s24',ios:'i15'},s.sel||{});}catch(e){}
+const save=()=>{try{localStorage.setItem('pv',JSON.stringify(st))}catch(e){}};
+const $=s=>document.querySelector(s);
+$('#page').value=st.page;$('#zoom').value=st.zoom;
+function chrome(kind,d,land){
+  // heights of browser/system bars in CSS px
+  if(kind==='android') return land?{sb:0,top:48,bot:0}:{sb:28,top:56,bot:18};
+  if(d.se) return land?{sb:0,top:0,bot:44}:{sb:20,top:0,bot:44};
+  return land?{sb:0,top:0,bot:50}:{sb:54,top:0,bot:84};
+}
+function build(){
+  const m=$('#main');m.innerHTML='';
+  for(const kind of ['android','ios']){
+    const g=DEV[kind];const d=g.list.find(x=>x.id===st.sel[kind])||g.list[0];
+    const W=st.land?d.h:d.w,H=st.land?d.w:d.h;const c=chrome(kind,d,st.land);
+    const col=document.createElement('div');col.className='col';
+    const opts=g.list.map(x=>`<option value="${x.id}"${x.id===d.id?' selected':''}>${x.n}</option>`).join('');
+    col.innerHTML=`<div class="cap"><span class="tag">${g.name}</span><select data-k="${kind}">${opts}</select><span class="sz">화면 ${W}×${H} · 앱 영역 ${W}×${H-c.sb-c.top-c.bot}</span></div>`;
+    const slot=document.createElement('div');slot.className='slot';
+    const dev=document.createElement('div');dev.className='dev '+kind;
+    const scr=document.createElement('div');scr.className='scr';scr.style.width=W+'px';scr.style.height=H+'px';
+    let h='';
+    if(c.sb) h+=`<div class="sb" style="height:${c.sb}px"><span>9:41</span><span class="ic"><i style="width:16px;height:9px"></i><i style="width:22px;height:10px;border-radius:3px"></i></span></div>`;
+    if(kind==='android') h+=`<div class="url" style="height:${c.top}px"><span>⌂</span><div class="box">lineeye-ai.github.io/scis/${st.page==='index.html'?'':st.page}</div><span>⋮</span></div>`;
+    h+=`<iframe allow="geolocation; clipboard-write" title="${g.name} 미리보기"></iframe>`;
+    if(kind==='ios') h+=`<div class="url" style="height:${c.bot}px"><div class="box">lineeye-ai.github.io</div>${d.se||st.land?'':'<div class="home"></div>'}</div>`;
+    else if(c.bot) h+=`<div class="nav" style="height:${c.bot}px"><i></i></div>`;
+    scr.innerHTML=h;
+    if(c.sb&&kind==='ios'&&!d.se) scr.insertAdjacentHTML('afterbegin','<div class="island"></div>');
+    if(c.sb&&kind==='android') scr.insertAdjacentHTML('afterbegin','<div class="punch"></div>');
+    dev.appendChild(scr);slot.appendChild(dev);col.appendChild(slot);m.appendChild(col);
+    const f=scr.querySelector('iframe');
+    f.addEventListener('load',()=>{try{const doc=f.contentDocument;const s=doc.createElement('style');
+      s.textContent='html{scrollbar-width:none}::-webkit-scrollbar{width:0;height:0;display:none}';doc.head.appendChild(s);}catch(e){}});
+    f.src=st.page+(st.page.includes('?')?'&':'?')+'pv='+Date.now();
+    slot._dev=dev;slot._W=W+(kind==='android'?20:24);slot._H=H+(kind==='android'?20:24);
+  }
+  m.querySelectorAll('select[data-k]').forEach(s=>s.onchange=()=>{st.sel[s.dataset.k]=s.value;save();build();});
+  $('#rot').textContent=st.land?'가로':'세로';$('#rot').classList.toggle('on',st.land);
+  fit();
+}
+function fit(){
+  const slots=[...document.querySelectorAll('.slot')];if(!slots.length)return;
+  let z=parseFloat(st.zoom);
+  if(st.zoom==='fit'){
+    const top=$('header').offsetHeight+22+34+10;const availH=innerHeight-top-12;
+    const wide=innerWidth>=slots.reduce((a,s)=>a+s._W,0)*.45+60;
+    const availW=wide?(innerWidth-32-28)/slots.length:innerWidth-32;
+    z=Math.min(1,...slots.map(s=>Math.min(availH/s._H,availW/s._W)));z=Math.max(z,.35);
+  }
+  slots.forEach(s=>{s._dev.style.transform=`scale(${z})`;s.style.width=s._W*z+'px';s.style.height=s._H*z+'px';});
+}
+$('#page').onchange=e=>{st.page=e.target.value;save();build();};
+$('#zoom').onchange=e=>{st.zoom=e.target.value;save();fit();};
+$('#rot').onclick=()=>{st.land=!st.land;save();build();};
+$('#reload').onclick=()=>build();
+addEventListener('resize',fit);
+build();
+</script>
+</body>
+</html>
