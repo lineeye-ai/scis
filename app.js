@@ -271,7 +271,7 @@ function render(){
     const b = document.createElement('div'); b.className = 'item' + (isSel(r) ? ' on' : ''); b.tabIndex = 0; b.dataset.key = r.gu + r.no;
     b.setAttribute('role', 'button'); b.setAttribute('aria-label', `${r.name}, ${fmtD(r.m)}`);
     b.innerHTML = `${icon(r.cat, 30)}
-      <div class="t">${r.name}<span class="gu" style="background:var(${GUVAR[r.gu]})">${r.gu} ${r.no}</span>${r.w ? '<span class="wide">구 전체</span>' : ''}</div>
+      <div class="t">${r.name}<span class="gu" style="background:var(${GUVAR[r.gu]})">${r.gu}</span>${r.w ? '<span class="wide">구 전체</span>' : ''}</div>
       <div class="dist">${fmtD(r.m)}<small>${trip(r.m)}</small><span class="avail" data-k="${ikey(r)}" hidden></span></div>
       <div class="d">${CATL[r.cat]} · ${r.desc}</div>
       <div class="meta">
@@ -417,7 +417,7 @@ function showInfo(r){
     <div class="ib">
       ${icon(r.cat, 34)}
       <div style="min-width:0;flex:1">
-        <div class="ic-cat">${CATL[r.cat]}<span class="gu" style="background:var(${GUVAR[r.gu]})">${r.gu} ${r.no}</span>${r.w ? '<span class="wide">구 전체 담당</span>' : ''}</div>
+        <div class="ic-cat">${CATL[r.cat]}<span class="gu" style="background:var(${GUVAR[r.gu]})">${r.gu}</span>${r.w ? '<span class="wide">구 전체 담당</span>' : ''}</div>
         <h3 id="infoTitle">${r.name}</h3>
         <div class="idist"><b>${fmtD(r.m)}</b> · ${trip(r.m)} · ${S.school.name}에서</div>
       </div>
