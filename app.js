@@ -602,7 +602,7 @@ function paintLogin(){
   });
   if(!P2.isAdmin && !n){
     mine.hidden = false;
-    list.innerHTML = '<span style="font-size:13px;color:var(--muted)">이 이메일에 연결된 기관이 없어요. 서부교육지원청에 담당 기관 등록을 요청해 주세요.</span>';
+    list.innerHTML = '<span style="font-size:13px;color:var(--muted)">이 이메일에 연결된 기관이 없어요. <a href="apply.html" style="color:var(--accent);font-weight:600">담당자 신청</a>에서 신청하면 바로 등록돼요.</span>';
   }
 }
 /* jump to one of my institutions and open its editor */
@@ -616,7 +616,7 @@ function openInst(k){
 
 /* login dialog: email -> one-time code */
 const lg = {wrap: $('#lgWrap'), s1: $('#lgStep1'), s2: $('#lgStep2'), msg: $('#lgMsg'), email: ''};
-function lgMsg(t){ lg.msg.textContent = t || ''; lg.msg.hidden = !t; }
+function lgMsg(t, ok){ lg.msg.textContent = t || ''; lg.msg.hidden = !t; lg.msg.classList.toggle('ok', !!ok); }
 function openLogin(){ getSb().catch(() => {}); lg.wrap.hidden = false; lg.s1.hidden = false; lg.s2.hidden = true; lgMsg(''); $('#lgEmail').focus(); }
 function closeLogin(){ lg.wrap.hidden = true; }
 $('#loginBtn').onclick = openLogin;
@@ -653,8 +653,26 @@ lg.s2.addEventListener('submit', async e => {
   const { error } = await P2.sb.auth.verifyOtp({email: lg.email, token, type: 'email'});
   btn.disabled = false;
   if(error){ lgMsg('인증번호가 맞지 않거나 시간이 지났어요. 다시 확인하거나 새로 받아 주세요.'); return; }
-  closeLogin(); await refreshMe(); toast('로그인했어요');
+  closeLogin(); await refreshMe(); toast('로그인했어요'); handoffGo();
 });
+
+/* just applied on the 신청서 page: log in with that email and open the institution's editor */
+function handoffGet(){ try{ const h = JSON.parse(localStorage.getItem('swk-handoff') || 'null'); if(h && Date.now() - h.t < 6 * 3600e3) return h; localStorage.removeItem('swk-handoff'); }catch(_){} return null; }
+function handoffGo(){
+  const h = handoffGet(); if(!h || !P2.email) return false;
+  if(P2.email !== h.email) return false;
+  try{ localStorage.removeItem('swk-handoff'); }catch(_){}
+  if(P2.assigned.has(h.inst)){ openInst(h.inst); toast('우리 기관 프로그램 입력 화면이에요'); return true; }
+  return false;
+}
+async function handoffStart(){
+  const h = handoffGet(); if(!h || !SB_ON) return;
+  try{ await getSb(); await refreshMe(); }catch(_){ }
+  if(handoffGo()) return;
+  const r = D.res.find(x => ikey(x) === h.inst);
+  openLogin(); $('#lgEmail').value = h.email;
+  lgMsg(`신청하신 이메일로 인증번호를 받아 로그인하면 ${r ? r.name + ' ' : ''}입력 화면이 바로 열려요. [인증번호 받기]를 눌러 주세요.`, true);
+}
 
 paintLogin();
 if(SB_ON){
@@ -664,7 +682,8 @@ if(SB_ON){
   setInterval(() => { if(!document.hidden) loadSeats(); }, 120000);
   // a staff member who logged in before: load the login library in the background
   let hasSession = false; try{ hasSession = Object.keys(localStorage).some(k => /^sb-.+-auth-token$/.test(k)); }catch(e){}
-  if(hasSession) getSb().then(refreshMe).catch(() => {});
+  if(handoffGet()) setTimeout(handoffStart, 300);
+  else if(hasSession) getSb().then(refreshMe).catch(() => {});
 }
 
 

@@ -59,7 +59,18 @@ $('#f').addEventListener('submit', async e => {
       let t = ''; try{ t = (await res.json()).message || ''; }catch(_){}
       throw new Error(/잠시 후|신청이 많아/.test(t) ? t : '신청을 보내지 못했어요. 잠시 후 다시 시도해 주세요.');
     }
-    $('#f').hidden = true; $('#doneEmail').textContent = email; $('#done').hidden = false; scrollTo(0, 0);
+    // registered right away unless the institution already has many staff
+    let ok = false;
+    try{
+      const rr = await fetch(CFG.supabaseUrl + '/rest/v1/rpc/is_registered', {method: 'POST',
+        headers: {'Content-Type': 'application/json', apikey: CFG.supabaseAnonKey, Authorization: 'Bearer ' + CFG.supabaseAnonKey},
+        body: JSON.stringify({p_email: email})});
+      ok = rr.ok && (await rr.json()) === true;
+    }catch(_){}
+    if(ok){ try{ localStorage.setItem('swk-handoff', JSON.stringify({email, inst: inst.value, t: Date.now()})); }catch(_){} }
+    document.querySelectorAll('.doneEmail').forEach(x => x.textContent = email); $('#doneInst').textContent = r.name;
+    $('#doneOk').hidden = !ok; $('#donePend').hidden = ok;
+    $('#f').hidden = true; $('#done').hidden = false; scrollTo(0, 0);
   }catch(err){ msg(err.message || '신청을 보내지 못했어요.'); }
   finally{ btn.disabled = false; btn.textContent = '신청하기'; }
 });

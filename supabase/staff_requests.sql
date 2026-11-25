@@ -76,3 +76,22 @@ begin
 end $$;
 revoke all on function public.approve_staff_request(bigint) from public, anon;
 grant execute on function public.approve_staff_request(bigint) to authenticated;
+
+-- 자동 등록 (2026-11-25): 신청서를 내면 관리자 승인 없이 바로 담당자로 등록.
+-- 한 기관에 담당자가 이미 5명 이상이면 관리자 확인 대기로 둠. 변경 기록은 seats_log에 남음.
+create or replace function public.staff_requests_auto_register() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  if (select count(*) from public.staff where inst_key = new.inst_key) >= 5 then
+    return null;
+  end if;
+  insert into public.staff(email, inst_key, inst_name) values (new.email, new.inst_key, new.inst_name) on conflict do nothing;
+  if new.email2 is not null then
+    insert into public.staff(email, inst_key, inst_name) values (new.email2, new.inst_key, new.inst_name) on conflict do nothing;
+  end if;
+  update public.staff_requests set status = 'approved', handled_by = '자동 등록', handled_at = now() where id = new.id;
+  return null;
+end $$;
+revoke all on function public.staff_requests_auto_register() from public, anon, authenticated;
+drop trigger if exists staff_requests_auto_register on public.staff_requests;
+create trigger staff_requests_auto_register after insert on public.staff_requests for each row execute function public.staff_requests_auto_register();

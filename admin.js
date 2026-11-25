@@ -132,7 +132,8 @@ async function loadReqs(){
   REQS = data || []; paintReqs();
 }
 function paintReqs(){
-  const all = $('#reqAll').checked, rows = REQS.filter(r => all || r.status === 'pending');
+  const recent = r => Date.now() - new Date(r.created_at).getTime() < 14 * 864e5; // auto-registered in the last 2 weeks stay in view
+  const all = $('#reqAll').checked, rows = REQS.filter(r => all || r.status === 'pending' || (r.handled_by === '자동 등록' && recent(r)));
   const pend = REQS.filter(r => r.status === 'pending').length;
   $('#reqCnt').textContent = pend ? `대기 ${pend}건` : '대기 없음';
   const ST = {pending: '대기', approved: '승인', rejected: '반려'};
@@ -144,7 +145,7 @@ function paintReqs(){
     <td>${esc(r.inst_name)}<br><span class="sub">${esc((BYKEY[r.inst_key] || {}).gu || '')} · ${esc(r.inst_key)}</span></td>
     <td>${person(r.name, r.dept, r.phone, r.email)}${r.email2 ? '<hr style="border:0;border-top:1px dashed var(--line);margin:6px 0">' + person(r.name2, r.dept2, r.phone2, r.email2) : ''}</td>
     <td>${fixes(r)}</td>
-    <td><span class="st ${r.status}">${ST[r.status] || r.status}</span>${r.handled_at ? `<br><span class="sub">${esc(fmt(r.handled_at))}</span>` : ''}</td>
+    <td><span class="st ${r.status}">${r.handled_by === '자동 등록' ? '자동 등록' : (ST[r.status] || r.status)}</span>${r.handled_at ? `<br><span class="sub">${esc(fmt(r.handled_at))}</span>` : ''}</td>
     <td>${r.status === 'pending' ? `<button class="pri sm" data-act="ok" data-id="${r.id}" type="button">승인</button><button class="sm" data-act="no" data-id="${r.id}" type="button">반려</button>` : ''}<button class="del" data-act="del" data-id="${r.id}" type="button">삭제</button></td></tr>`).join('')
     : `<tr><td colspan="6" class="muted">${all ? '신청이 없어요.' : '처리할 신청이 없어요.'}</td></tr>`;
 }

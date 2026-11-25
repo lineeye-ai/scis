@@ -49,6 +49,8 @@ button:disabled{opacity:.55;cursor:default}
 .msg{font-size:14px}.msg.bad{color:var(--bad)}.msg.ok{color:var(--ok)}
 .done{text-align:center;padding:34px 18px}
 .done h2{display:block;font-size:20px}
+.gobtn{display:inline-block;margin-top:6px;padding:13px 22px;border-radius:12px;background:var(--accent);color:var(--accent-ink);font-weight:700;text-decoration:none}
+.gobtn:hover{filter:brightness(1.08)}
 .hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
 </style>
 </head>
@@ -57,7 +59,7 @@ button:disabled{opacity:.55;cursor:default}
 <main>
 <form id="f" novalidate style="display:grid;gap:14px">
   <section class="card">
-    <p class="lead" style="margin:0">지역 기관의 담당자로 등록되면, 웹앱에서 우리 기관의 <b>프로그램과 정원·참여 인원</b>을 직접 입력할 수 있어요. 아래 내용을 적어 신청하시면 교육지원청에서 확인한 뒤 등록하고, 등록이 끝나면 적어 주신 이메일로 로그인할 수 있어요.</p>
+    <p class="lead" style="margin:0">지역 기관의 담당자로 등록되면, 웹앱에서 우리 기관의 <b>프로그램과 정원·참여 인원</b>을 직접 입력할 수 있어요. 아래 내용을 적어 신청하면 <b>바로 담당자로 등록</b>되고, 적어 주신 이메일로 인증번호를 받아 로그인하면 곧바로 입력할 수 있어요.</p>
   </section>
 
   <section class="card">
@@ -127,14 +129,21 @@ button:disabled{opacity:.55;cursor:default}
 </form>
 
 <section class="card done" id="done" hidden>
-  <h2>신청이 접수됐어요</h2>
-  <p>교육지원청에서 확인한 뒤 담당자로 등록해 드려요.<br>등록이 끝나면 지도 화면의 <b>[기관 담당자 로그인]</b>에서 <b id="doneEmail"></b>로 로그인할 수 있어요.</p>
+  <div id="doneOk">
+    <h2>담당자로 등록됐어요</h2>
+    <p><b id="doneInst"></b> 담당자로 바로 등록됐어요.<br>아래 버튼을 누르고 <b class="doneEmail"></b>로 받은 인증번호를 넣으면, 지도에서 우리 기관의 프로그램 입력 화면이 바로 열려요.</p>
+    <p><a class="gobtn" id="goEdit" href="./#start">지금 바로 프로그램 입력하기 →</a></p>
+  </div>
+  <div id="donePend" hidden>
+    <h2>신청이 접수됐어요</h2>
+    <p>이 기관에는 이미 담당자가 여러 명 등록되어 있어, 교육지원청에서 확인한 뒤 등록해 드려요.<br>등록이 끝나면 지도 화면의 <b>[기관 담당자 로그인]</b>에서 <b class="doneEmail"></b>로 로그인할 수 있어요.</p>
+    <p><a href="./">지도 화면으로 가기</a></p>
+  </div>
   <p class="hint">인증 메일은 studentintegratedsupport@gmail.com에서 보내요. 메일이 보이지 않으면 스팸 메일함도 확인해 주세요.</p>
-  <p><a href="./">지도 화면으로 가기</a></p>
 </section>
 </main>
 <script src="config.js"></script>
 <script src="data/app-data.js"></script>
-<script src="apply.js"></script>
+<script src="apply.js?v=1657a297"></script>
 </body>
 </html>
