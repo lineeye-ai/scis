@@ -160,7 +160,6 @@ function chips(host, values, key){
     b.onclick = () => { S[key] = v; host.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', c === b)); showOpts(true); $('#q').focus(); };
     host.appendChild(b); });
 }
-chips($('#guChips'), GUS, 'gu'); chips($('#lvChips'), ['초','중','고'], 'lv');
 
 const q = $('#q'), opts = $('#opts'); let optSel = -1, optList = [], optSig = '', optTap = null, optPicked = 0;
 function norm(s){ return s.replace(/\s/g,'').replace(/등학교$|학교$/,''); }
