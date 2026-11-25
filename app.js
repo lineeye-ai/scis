@@ -172,14 +172,16 @@ function showOpts(force, all){
   if(!force && !t){ opts.hidden = true; q.setAttribute('aria-expanded', 'false'); return; }
   // same list already on screen (e.g. iOS finishing a Korean syllable as you tap): keep it, so the tap is not lost
   const sig = optList.map(s => s.name).join('|');
-  if(sig === optSig && !opts.hidden && opts.childElementCount){ opts.hidden = false; q.setAttribute('aria-expanded', 'true'); return; }
+  if(sig === optSig && !opts.hidden && opts.childElementCount){ opts.hidden = false; q.setAttribute('aria-expanded', 'true'); placeOpts(); return; }
   optSig = sig;
   opts.innerHTML = optList.length ? '' : '<div class="opt" aria-disabled="true">맞는 학교가 없어요. 지도에서 위치를 골라 보세요.</div>';
   optList.forEach((s, i) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'opt'; b.setAttribute('role', 'option'); b.id = 'o' + i;
     b.innerHTML = `<span>${s.name}</span><small>${s.gu} · ${LV[s.lv]}</small>`; b.dataset.i = i; b.onmousedown = e => e.preventDefault(); b.onclick = () => pickOpt(s);
     opts.appendChild(b); });
-  optSel = -1; opts.hidden = false; q.setAttribute('aria-expanded', 'true');
+  optSel = -1; opts.hidden = false; q.setAttribute('aria-expanded', 'true'); placeOpts();
 }
+/* phones: hang the list right under the search box, over the 구·학교급 chips */
+function placeOpts(){ opts.style.top = innerWidth <= 900 ? (q.parentElement.offsetHeight + 4) + 'px' : ''; }
 // open the school list whenever the box is focused, tapped again, typed in or emptied
 function openOpts(){
   const same = S.school && !S.school.custom && q.value === S.school.name; // the chosen school's name is still in the box: show every school
