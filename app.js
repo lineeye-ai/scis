@@ -406,6 +406,7 @@ const SUP = [
 ];
 const info = $('#info');
 function showInfo(r){
+  const opening = info.hidden;
   const fresh = info.hidden || !P2.shown || ikey(P2.shown) !== ikey(r); // only a new popup floats up, not a refresh
   if(P2.editing && P2.editing !== ikey(r)) P2.editing = null;
   const [, items, when] = SUP.find(([re]) => re.test(r.name + ' ' + r.desc));
@@ -429,7 +430,7 @@ function showInfo(r){
     <div class="iwhen"><b>이럴 때 연계해요</b> ${when}</div>
     <div class="iaddr">${r.addr}${r.ap ? ' <span class="tag">대략 위치</span>' : ''}</div>
     </div>`;
-  info.classList.toggle('full', P2.editing === ikey(r)); info.hidden = false;
+  info.classList.toggle('full', P2.editing === ikey(r)); info.hidden = false; if(opening) popPush();
   if(fresh){ info.classList.toggle('right', Math.random() < .5); // computers: the popup opens on the left or the right at random
     info.classList.remove('rise'); void info.offsetWidth; info.classList.add('rise'); } P2.shown = r; P2.items = items; bindProg(); bindSheet();
   info.querySelector('.ix').onclick = () => { S.sel = null; hideInfo(); document.querySelectorAll('.item.on').forEach(i => i.classList.remove('on')); drawMap(); };
@@ -668,7 +669,17 @@ if(SB_ON){
 }
 
 
-function hideInfo(){ info.hidden = true; info.classList.remove('full'); P2.shown = null; P2.editing = null; mapMode(false); }
+/* phone back button (Android) / swipe back (iPhone): close the open popup instead of leaving the app */
+let popClosing = false, popPending = false;
+function popPush(){ try{ if(!popPending && !(history.state && history.state.pop)) history.pushState({pop:1}, ''); }catch(e){} }
+function popDrop(){ try{ if(!popClosing && !popPending && history.state && history.state.pop){ popPending = true; history.back(); } }catch(e){} }
+try{ if(history.state && history.state.pop) history.replaceState(null, ''); }catch(e){}
+addEventListener('popstate', () => {
+  if(popPending){ popPending = false; if(!info.hidden) popPush(); return; } // our own step back after the popup was closed some other way
+  if(info.hidden) return;
+  popClosing = true; try{ info.querySelector('.ix').click(); } finally { popClosing = false; }
+});
+function hideInfo(){ if(!info.hidden) popDrop(); info.hidden = true; info.classList.remove('full'); P2.shown = null; P2.editing = null; mapMode(false); }
 /* phones: the sheet lives on <body>; while it is open the map card is pinned above it (map mode) */
 const infoHome = info.parentNode;
 function placeInfo(){
