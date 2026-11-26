@@ -180,12 +180,29 @@ function showOpts(force, all){
   optSel = -1; opts.hidden = false; q.setAttribute('aria-expanded', 'true'); placeOpts();
 }
 /* phones: hang the list right under the search box, over the 구·학교급 chips */
-function placeOpts(){ opts.style.top = innerWidth <= 900 ? (q.parentElement.offsetHeight + 4) + 'px' : ''; }
+function placeOpts(){ opts.style.top = innerWidth <= 900 ? (q.parentElement.offsetHeight + 4) + 'px' : ''; fitOpts(); }
+/* phones: the on-screen keyboard covers the bottom of the page, so keep the list's bottom edge above it
+   (otherwise the last rows sit under the keyboard and can't be tapped, even after scrolling the list) */
+function fitOpts(){
+  if(opts.hidden || innerWidth > 900){ opts.style.maxHeight = ''; return; }
+  const vv = window.visualViewport, bottom = vv ? vv.offsetTop + vv.height : innerHeight;
+  opts.style.maxHeight = Math.max(110, Math.min(300, Math.floor(bottom - opts.getBoundingClientRect().top - 8))) + 'px';
+}
+let optRoom = 0;
+function roomForOpts(){ // little room left above the keyboard: lift the search box toward the top of the screen once
+  if(opts.hidden || innerWidth > 900) return;
+  const vv = window.visualViewport, bottom = vv ? vv.offsetTop + vv.height : innerHeight, top = q.parentElement.getBoundingClientRect().top;
+  if(bottom - opts.getBoundingClientRect().top < 220 && top > 12 && Date.now() - optRoom > 1500){ optRoom = Date.now(); scrollBy({top: top - 8 - (vv ? vv.offsetTop : 0)}); }
+  fitOpts();
+}
+if(window.visualViewport){ visualViewport.addEventListener('resize', () => { fitOpts(); clearTimeout(roomForOpts.t); roomForOpts.t = setTimeout(roomForOpts, 120); }); visualViewport.addEventListener('scroll', fitOpts); }
+addEventListener('scroll', () => { if(!opts.hidden) fitOpts(); }, {passive: true});
 // open the school list whenever the box is focused, tapped again, typed in or emptied
 function openOpts(){
   const same = S.school && !S.school.custom && q.value === S.school.name; // the chosen school's name is still in the box: show every school
   showOpts(true, same); if(same) q.select();
   q.closest('.card').classList.add('searching');
+  setTimeout(roomForOpts, 350); // once the keyboard is up
 }
 q.addEventListener('input', () => { showOpts(true); q.closest('.card').classList.add('searching'); });
 q.addEventListener('focus', openOpts);
