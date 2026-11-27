@@ -169,11 +169,14 @@ function paintReqs(){
   const person = (n, d, p, e) => n || e ? `<div>${esc(n || '')}${d ? ` <span class="sub">${esc(d)}</span>` : ''}<br>${esc(e || '')}${p ? `<br><span class="sub">${esc(p)}</span>` : ''}</div>` : '';
   const fixes = r => [['기관명', r.fix_name], ['주소', r.fix_addr], ['전화', r.fix_phone], ['홈페이지', r.fix_site], ['기타', r.fix_etc]]
     .filter(f => f[1]).map(f => `<div><span class="sub">${f[0]}</span> ${esc(f[1])}</div>`).join('') || '<span class="sub">없음</span>';
+  const FX = {'처리 완료': 'done', '일부 반영': 'part', '반영 안 함': 'no', '변경 없음': 'same'};
+  const fixRes = r => r.fix_status ? `<div class="fixres ${FX[r.fix_status] || ''}"><b>${esc(r.fix_status)}</b>${r.fix_done_at ? ` <span class="sub">${esc(fmt(r.fix_done_at))}</span>` : ''}${r.fix_note ? `<div>${esc(r.fix_note)}</div>` : ''}</div>`
+    : ([r.fix_name, r.fix_addr, r.fix_phone, r.fix_site, r.fix_etc].some(Boolean) ? '<div class="fixres wait"><b>반영 전</b></div>' : '');
   $('#reqs').innerHTML = rows.length ? rows.map(r => `<tr>
     <td>${esc(fmt(r.created_at))}</td>
     <td>${esc(r.inst_name)}<br><span class="sub">${esc((BYKEY[r.inst_key] || {}).gu || '')} · ${esc(r.inst_key)}</span></td>
     <td>${person(r.name, r.dept, r.phone, r.email)}${r.email2 ? '<hr style="border:0;border-top:1px dashed var(--line);margin:6px 0">' + person(r.name2, r.dept2, r.phone2, r.email2) : ''}</td>
-    <td>${fixes(r)}</td>
+    <td>${fixes(r)}${fixRes(r)}</td>
     <td><span class="st ${r.status}">${r.handled_by === '자동 등록' ? '자동 등록' : (ST[r.status] || r.status)}</span>${r.handled_at ? `<br><span class="sub">${esc(fmt(r.handled_at))}</span>` : ''}</td>
     <td>${r.status === 'pending' ? `<button class="pri sm" data-act="ok" data-id="${r.id}" type="button">승인</button><button class="sm" data-act="no" data-id="${r.id}" type="button">반려</button>` : ''}<button class="del" data-act="del" data-id="${r.id}" type="button">삭제</button></td></tr>`).join('')
     : `<tr><td colspan="6" class="muted">${all ? '신청이 없어요.' : '처리할 신청이 없어요.'}</td></tr>`;

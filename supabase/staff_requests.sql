@@ -110,3 +110,6 @@ begin
 end $$;
 revoke all on function public.add_admin(text) from public, anon;
 grant execute on function public.add_admin(text) to authenticated;
+
+-- 수정 요청 처리 결과 (2026-11-27)
+alter table public.staff_requests add column if not exists fix_status text, add column if not exists fix_note text, add column if not exists fix_done_at timestamptz;

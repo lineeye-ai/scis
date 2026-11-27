@@ -484,7 +484,9 @@ function progHTML(r, items){
   const upd = rec?.updatedAt ? `<div class="inote">정원·참여 현황 갱신: ${new Date(rec.updatedAt).toLocaleDateString('ko-KR', {month:'long', day:'numeric'})}</div>` : '';
   const srcs = pg ? [pg.src, pg.src2].filter(Boolean) : [];
   const srcLinks = srcs.map((u, i) => `<a href="${esc(u)}" target="_blank" rel="noopener">출처${srcs.length > 1 ? ' ' + (i + 1) : ''}</a>`).join(' · ');
-  const foot = rec?.items?.length ? '' : pg ? `<div class="inote">기관 홈페이지·구청·언론 보도 등 공개 정보로 확인한 프로그램이에요(${PROGS_DATE} 확인) · ${srcLinks}. 운영 기간과 모집 여부는 연계 전에 기관에 확인하세요.</div>` : '<div class="inote">대표 프로그램이에요. 공개된 기관 정보를 찾지 못해 같은 종류 기관의 일반적인 프로그램을 보여 줘요. 연계 전에 기관에 확인하세요.</div>';
+  const foot = rec?.items?.length ? '' : pg?.by === 'inst' ? `<div class="inote">기관 담당자가 직접 알려 준 프로그램이에요(${esc(pg.byDate || '')}). 운영 기간과 모집 여부는 연계 전에 기관에 확인하세요.</div>`
+    : pg?.by === 'mix' ? `<div class="inote">공개 정보(${PROGS_DATE} 확인)와 기관 담당자가 알려 준 내용(${esc(pg.byDate || '')})을 함께 정리했어요${srcLinks ? ' · ' + srcLinks : ''}. 운영 기간과 모집 여부는 연계 전에 기관에 확인하세요.</div>`
+    : pg ? `<div class="inote">기관 홈페이지·구청·언론 보도 등 공개 정보로 확인한 프로그램이에요(${PROGS_DATE} 확인) · ${srcLinks}. 운영 기간과 모집 여부는 연계 전에 기관에 확인하세요.</div>` : '<div class="inote">대표 프로그램이에요. 공개된 기관 정보를 찾지 못해 같은 종류 기관의 일반적인 프로그램을 보여 줘요. 연계 전에 기관에 확인하세요.</div>';
   const ginfo = /청소년상담복지/.test(r.name) ? [['긴급 상담', '청소년전화 1388(24시간, 문자·카카오톡 가능)']] : /경찰서/.test(r.name) ? [['신고', '학교폭력 117(문자 #0117), 범죄·아동학대 112']] : /정신건강/.test(r.name) ? [['위기 상담', '정신건강 위기상담 1577-0199(24시간)']] : [];
   const infoList = [...(pg?.info || []), ...ginfo];
   const info = infoList.length ? `<div class="iinfo"><b>이용 안내</b>${infoList.map(([l, t]) => `<div><span>${esc(l)}</span>${esc(t)}</div>`).join('')}</div>` : '';
