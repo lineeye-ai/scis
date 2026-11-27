@@ -36,6 +36,8 @@ button.sm{padding:4px 10px;font-size:13px;margin:0 4px 4px 0}
 .st{font-size:12px;font-weight:700;border-radius:6px;padding:1px 7px;white-space:nowrap}.st.pending{background:#FFF3D6;color:#8A5A00}.st.approved{background:#DDF3E5;color:#1E6B3E}.st.rejected{background:#F3E1E0;color:#9A2E25}
 .sub{color:var(--muted);font-size:12.5px}
 .msg{margin-top:8px;font-size:14px}.msg.bad{color:var(--bad)}.msg.ok{color:var(--ok)}
+.confirm{margin-top:10px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 12px;border:1.5px solid var(--accent);border-radius:10px;font-size:14px}
+.confirm span{flex:1 1 220px}
 table{width:100%;border-collapse:collapse;font-size:14px}
 th,td{text-align:left;padding:7px 6px;border-bottom:1px solid var(--line);vertical-align:top}
 th{font-weight:600;color:var(--muted);font-size:13px}
@@ -91,12 +93,24 @@ th{font-weight:600;color:var(--muted);font-size:13px}
     <h2 style="margin-top:14px">최근 변경 기록 (최근 50건)</h2>
     <div class="tw"><table><thead><tr><th>시각</th><th>기관</th><th>입력한 사람</th><th>내용</th></tr></thead><tbody id="log"></tbody></table></div>
   </section>
-  <p class="muted">관리자를 추가·삭제하려면 Supabase SQL Editor에서 <code>admins</code> 표를 고치세요(설치 안내서 참고).</p>
+  <section class="card" id="adminCard">
+    <h2>관리자 계정 <span class="muted" id="admCnt"></span></h2>
+    <p class="muted" style="margin:0 0 10px">관리자로 로그인한 사람만 새 관리자를 추가할 수 있어요. 추가된 사람은 그 이메일로 인증번호를 받아 이 화면에 로그인해요.</p>
+    <div class="row">
+      <div><label for="aem">새 관리자 이메일</label><input id="aem" type="email" autocomplete="off" placeholder="name@example.com"></div>
+      <div><label for="aem2">이메일 다시 입력</label><input id="aem2" type="email" autocomplete="off" placeholder="같은 이메일을 한 번 더"></div>
+      <div><button class="pri" id="admAdd" type="button">관리자로 추가</button></div>
+    </div>
+    <div class="confirm" id="admConfirm" hidden><span id="admConfirmTx"></span><button class="pri" id="admYes" type="button">추가</button><button id="admNo" type="button">취소</button></div>
+    <div class="msg" id="admMsg"></div>
+    <div class="tw" style="margin-top:12px"><table><thead><tr><th>이메일</th><th>등록일</th><th>추가한 관리자</th></tr></thead><tbody id="admins"></tbody></table></div>
+  </section>
+  <p class="muted">관리자 삭제는 Supabase SQL Editor에서 <code>admins</code> 표를 고치세요(설치 안내서 참고).</p>
 </main>
 
 <script src="config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js" crossorigin="anonymous"></script>
 <script src="data/app-data.js"></script>
-<script src="admin.js?v=87d4452b"></script>
+<script src="admin.js?v=b27fc319"></script>
 </body>
 </html>

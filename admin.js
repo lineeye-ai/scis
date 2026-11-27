@@ -68,8 +68,37 @@ async function start(){
     return;
   }
   $('#login').hidden = true; $('#app').hidden = false;
-  await Promise.all([loadStaff(), loadSeats(), loadLog(), loadReqs()]);
+  await Promise.all([loadStaff(), loadSeats(), loadLog(), loadReqs(), loadAdmins()]);
 }
+
+/* admins: only someone already signed in as an admin can add another (the add_admin RPC checks it again on the server) */
+async function loadAdmins(){
+  const { data, error } = await sb.from('admins').select('email,created_at,added_by').order('created_at');
+  if(error) return msg($('#admMsg'), '관리자 목록을 불러오지 못했어요: ' + error.message);
+  $('#admCnt').textContent = `${(data || []).length}명`;
+  $('#admins').innerHTML = (data || []).map(a => `<tr><td>${esc(a.email)}</td><td>${esc(fmt(a.created_at))}</td><td>${esc(a.added_by || '-')}</td></tr>`).join('');
+}
+let admPending = '';
+$('#admAdd').onclick = () => {
+  const e = $('#aem').value.trim().toLowerCase(), e2 = $('#aem2').value.trim().toLowerCase();
+  $('#admConfirm').hidden = true; admPending = '';
+  if(!EMAIL.test(e)) return msg($('#admMsg'), '이메일 주소를 확인해 주세요.');
+  if(e !== e2) return msg($('#admMsg'), '두 이메일이 서로 달라요. 다시 확인해 주세요.');
+  msg($('#admMsg'), ''); admPending = e;
+  $('#admConfirmTx').textContent = `${e} 을(를) 관리자로 추가할까요? 관리자는 담당자 등록·삭제와 모든 기록을 볼 수 있어요.`;
+  $('#admConfirm').hidden = false; $('#admYes').focus();
+};
+$('#admNo').onclick = () => { $('#admConfirm').hidden = true; admPending = ''; };
+$('#admYes').onclick = async () => {
+  const e = admPending; if(!e) return;
+  $('#admYes').disabled = true;
+  const { data, error } = await sb.rpc('add_admin', {p_email: e});
+  $('#admYes').disabled = false; $('#admConfirm').hidden = true; admPending = '';
+  if(error) return msg($('#admMsg'), /not_admin/.test(error.message) ? '관리자로 로그인한 상태에서만 추가할 수 있어요. 다시 로그인해 주세요.' : /bad_email/.test(error.message) ? '이메일 주소를 확인해 주세요.' : '추가하지 못했어요: ' + error.message);
+  msg($('#admMsg'), data ? `${e} 을(를) 관리자로 추가했어요.` : `${e} 은(는) 이미 관리자예요.`, true);
+  $('#aem').value = ''; $('#aem2').value = '';
+  loadAdmins();
+};
 
 /* staff */
 async function loadStaff(){

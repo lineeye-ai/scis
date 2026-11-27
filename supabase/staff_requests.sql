@@ -95,3 +95,18 @@ end $$;
 revoke all on function public.staff_requests_auto_register() from public, anon, authenticated;
 drop trigger if exists staff_requests_auto_register on public.staff_requests;
 create trigger staff_requests_auto_register after insert on public.staff_requests for each row execute function public.staff_requests_auto_register();
+
+-- 관리자 추가 (2026-11-27): 관리자 화면에서, 이미 관리자로 로그인한 사람만 새 관리자를 추가할 수 있음.
+alter table public.admins add column if not exists added_by text;
+create unique index if not exists admins_email_key on public.admins (email);
+create or replace function public.add_admin(p_email text) returns boolean
+language plpgsql security definer set search_path = public as $$
+declare e text := lower(trim(coalesce(p_email, '')));
+begin
+  if not public.is_admin() then raise exception 'not_admin' using errcode = '42501'; end if;
+  if e !~ '^[^\s@,]+@[^\s@,]+\.[^\s@,]+$' or length(e) > 200 then raise exception 'bad_email' using errcode = '22023'; end if;
+  insert into public.admins(email, added_by) values (e, public.current_email()) on conflict (email) do nothing;
+  return found;
+end $$;
+revoke all on function public.add_admin(text) from public, anon;
+grant execute on function public.add_admin(text) to authenticated;
